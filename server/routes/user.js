@@ -91,10 +91,33 @@ router.put('/info', async (req, res) => {
       return error(res, '用户不存在', 404);
     }
 
-    if (nickName) user.nickName = nickName;
-    if (avatarUrl) user.avatarUrl = avatarUrl;
+    // 更新昵称（如果提供且不为空）
+    if (nickName && nickName.trim() && nickName.trim() !== '微信用户') {
+      user.nickName = nickName.trim();
+    } else if (nickName && nickName.trim() === '') {
+      // 如果传入空字符串，保持原值
+      // 不更新
+    }
+    
+    // 更新头像（如果提供）
+    if (avatarUrl !== undefined && avatarUrl !== null) {
+      // 如果是完整URL，提取相对路径
+      let relativeUrl = avatarUrl;
+      if (avatarUrl.startsWith('http')) {
+        // 提取相对路径（假设是服务器URL）
+        const baseUrl = req.protocol + '://' + req.get('host');
+        if (avatarUrl.startsWith(baseUrl)) {
+          relativeUrl = avatarUrl.replace(baseUrl, '');
+        } else {
+          // 如果是外部URL（如微信头像），保持原样
+          relativeUrl = avatarUrl;
+        }
+      }
+      user.avatarUrl = relativeUrl.trim() || null;
+    }
 
     await user.save();
+    console.log('用户信息已更新 - nickName:', user.nickName, 'avatarUrl:', user.avatarUrl);
     success(res);
   } catch (err) {
     error(res, err.message, 500);

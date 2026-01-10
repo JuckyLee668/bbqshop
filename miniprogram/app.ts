@@ -23,8 +23,11 @@ App<AppOption>({
     const token = wx.getStorageSync('token')
     if (token) {
       this.globalData.token = token
-      // 获取用户信息
-      this.getUserInfo()
+      // 静默获取用户信息（失败不影响启动）
+      this.getUserInfo().catch(() => {
+        // 静默处理错误，不显示提示
+        console.log('启动时获取用户信息失败，可能token已过期')
+      })
     }
   },
 
@@ -50,10 +53,12 @@ App<AppOption>({
         })
       })
 
-      // 2. 使用传入的用户信息（如果已通过按钮授权获取）
+      // 2. 使用传入的用户信息（如果已通过 getUserProfile 获取）
       const wxUserInfo = userInfo || null
       if (wxUserInfo) {
-        console.log('使用授权获取的用户信息:', wxUserInfo)
+        console.log('使用授权获取的用户信息 - 昵称:', wxUserInfo.nickName, '头像:', wxUserInfo.avatarUrl ? '已设置' : '未设置')
+      } else {
+        console.log('未传入用户信息，将使用默认值')
       }
 
       // 3. 调用后端登录接口
@@ -102,6 +107,7 @@ App<AppOption>({
       if (userInfo && userInfo.openid) {
         this.globalData.userInfo = userInfo
         wx.setStorageSync('userInfo', userInfo)
+        return userInfo
       } else {
         // 如果没有openid，清除登录状态，需要重新登录
         console.warn('用户信息中缺少openid，需要重新登录')
@@ -109,14 +115,21 @@ App<AppOption>({
         wx.removeStorageSync('userInfo')
         this.globalData.token = undefined
         this.globalData.userInfo = undefined
+        return null
       }
-    } catch (err) {
-      console.error('获取用户信息失败:', err)
+    } catch (err: any) {
       // 如果获取失败，可能是token过期，清除登录状态
-      wx.removeStorageSync('token')
-      wx.removeStorageSync('userInfo')
-      this.globalData.token = undefined
-      this.globalData.userInfo = undefined
+      const errorMsg = err.message || ''
+      if (errorMsg.includes('401') || errorMsg.includes('请求失败: 401')) {
+        console.log('Token已过期，清除登录状态')
+        wx.removeStorageSync('token')
+        wx.removeStorageSync('userInfo')
+        this.globalData.token = undefined
+        this.globalData.userInfo = undefined
+      } else {
+        console.error('获取用户信息失败:', err)
+      }
+      throw err // 重新抛出错误，让调用者决定如何处理
     }
   }
 })

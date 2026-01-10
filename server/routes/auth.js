@@ -102,8 +102,9 @@ router.post('/wx-login', async (req, res) => {
         let needSave = false;
         
         // 更新昵称：如果传入的昵称不为空且与现有不同，则更新
+        // 如果当前昵称是默认值"微信用户"，也更新
         if (userInfo?.nickName && userInfo.nickName.trim() && userInfo.nickName !== '微信用户') {
-          if (user.nickName !== userInfo.nickName) {
+          if (!user.nickName || user.nickName === '微信用户' || user.nickName !== userInfo.nickName.trim()) {
             user.nickName = userInfo.nickName.trim();
             needSave = true;
             console.log('更新昵称:', user.nickName);
@@ -111,8 +112,9 @@ router.post('/wx-login', async (req, res) => {
         }
         
         // 更新头像：如果传入的头像URL不为空，则更新（支持微信头像URL）
+        // 如果当前没有头像，也更新
         if (userInfo?.avatarUrl && userInfo.avatarUrl.trim()) {
-          if (user.avatarUrl !== userInfo.avatarUrl) {
+          if (!user.avatarUrl || user.avatarUrl !== userInfo.avatarUrl.trim()) {
             user.avatarUrl = userInfo.avatarUrl.trim();
             needSave = true;
             console.log('更新头像:', user.avatarUrl);

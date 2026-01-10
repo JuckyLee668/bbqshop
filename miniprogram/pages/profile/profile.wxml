@@ -137,7 +137,7 @@
         <view class="form-item">
           <text class="form-label">头像</text>
           <button class="avatar-button" open-type="chooseAvatar" bindchooseavatar="onChooseAvatar">
-            <image wx:if="{{editForm.avatarUrl}}" src="{{editForm.avatarUrl}}" class="avatar-preview" />
+            <image wx:if="{{editForm.avatarUrl}}" src="{{editForm.avatarUrl.indexOf('http') === 0 ? editForm.avatarUrl : (editForm.avatarUrl.indexOf('/') === 0 ? 'https://rack.xi-han.top' + editForm.avatarUrl : 'https://rack.xi-han.top/' + editForm.avatarUrl)}}" class="avatar-preview" />
             <view wx:else class="avatar-placeholder">
               <t-icon name="user" size="40px" color="#999" />
               <text>点击选择头像</text>

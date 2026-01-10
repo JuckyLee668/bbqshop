@@ -19,15 +19,24 @@ function request(url, method = 'GET', data = {}) {
           if (res.data.code === 200) {
             resolve(res.data.data);
           } else {
-            // token过期，清除并跳转登录
+            // token过期，清除登录状态
             if (res.data.code === 401) {
               wx.removeStorageSync('token');
               wx.removeStorageSync('userInfo');
+              reject(new Error('请求失败: 401'));
+            } else {
+              reject(new Error(res.data.message || '请求失败'));
             }
-            reject(new Error(res.data.message || '请求失败'));
           }
         } else {
-          reject(new Error(`请求失败: ${res.statusCode}`));
+          // 401状态码也清除token
+          if (res.statusCode === 401) {
+            wx.removeStorageSync('token');
+            wx.removeStorageSync('userInfo');
+            reject(new Error('请求失败: 401'));
+          } else {
+            reject(new Error(`请求失败: ${res.statusCode}`));
+          }
         }
       },
       fail: (err) => {
