@@ -57,15 +57,18 @@ router.post('/wx-login', async (req, res) => {
         // 直接创建新用户，如果遇到唯一索引冲突，说明数据库中有旧索引需要清理
         
         console.log('创建新用户，openid:', openid);
+        console.log('传入的用户信息:', userInfo);
         try {
           user = new User({
             openid,
             unionid,
-            nickName: userInfo?.nickName || '微信用户',
-            avatarUrl: userInfo?.avatarUrl
+            nickName: (userInfo?.nickName && userInfo.nickName.trim() && userInfo.nickName !== '微信用户') 
+              ? userInfo.nickName.trim() 
+              : '微信用户',
+            avatarUrl: userInfo?.avatarUrl ? userInfo.avatarUrl.trim() : null
           });
           await user.save();
-          console.log('新用户创建成功，ID:', user._id);
+          console.log('新用户创建成功，ID:', user._id, 'nickName:', user.nickName, 'avatarUrl:', user.avatarUrl);
         } catch (saveErr) {
           // 如果是唯一索引冲突，可能是数据库中有旧索引
           if (saveErr.code === 11000) {
@@ -92,28 +95,35 @@ router.post('/wx-login', async (req, res) => {
         }
       } else {
         console.log('找到已存在用户，ID:', user._id);
-        // 更新用户信息（如果提供了新信息，或者现有信息为空）
+        console.log('传入的用户信息:', userInfo);
+        console.log('当前用户信息 - nickName:', user.nickName, 'avatarUrl:', user.avatarUrl);
+        
+        // 更新用户信息（如果提供了新信息）
         let needSave = false;
-        if (userInfo?.nickName && (!user.nickName || user.nickName === '微信用户')) {
-          user.nickName = userInfo.nickName;
-          needSave = true;
+        
+        // 更新昵称：如果传入的昵称不为空且与现有不同，则更新
+        if (userInfo?.nickName && userInfo.nickName.trim() && userInfo.nickName !== '微信用户') {
+          if (user.nickName !== userInfo.nickName) {
+            user.nickName = userInfo.nickName.trim();
+            needSave = true;
+            console.log('更新昵称:', user.nickName);
+          }
         }
-        if (userInfo?.avatarUrl && !user.avatarUrl) {
-          user.avatarUrl = userInfo.avatarUrl;
-          needSave = true;
+        
+        // 更新头像：如果传入的头像URL不为空，则更新（支持微信头像URL）
+        if (userInfo?.avatarUrl && userInfo.avatarUrl.trim()) {
+          if (user.avatarUrl !== userInfo.avatarUrl) {
+            user.avatarUrl = userInfo.avatarUrl.trim();
+            needSave = true;
+            console.log('更新头像:', user.avatarUrl);
+          }
         }
-        // 如果提供了新信息且与现有信息不同，也更新
-        if (userInfo?.nickName && user.nickName !== userInfo.nickName) {
-          user.nickName = userInfo.nickName;
-          needSave = true;
-        }
-        if (userInfo?.avatarUrl && user.avatarUrl !== userInfo.avatarUrl) {
-          user.avatarUrl = userInfo.avatarUrl;
-          needSave = true;
-        }
+        
         if (needSave) {
           await user.save();
-          console.log('用户信息已更新');
+          console.log('用户信息已更新 - nickName:', user.nickName, 'avatarUrl:', user.avatarUrl);
+        } else {
+          console.log('用户信息无需更新');
         }
       }
     } catch (dbErr) {

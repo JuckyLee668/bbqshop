@@ -50,35 +50,10 @@ App<AppOption>({
         })
       })
 
-      // 2. 尝试获取用户信息（头像和昵称）
-      let wxUserInfo = userInfo || null
-      if (!wxUserInfo) {
-        try {
-          // 尝试从微信获取用户信息（如果用户已授权）
-          const userInfoRes = await new Promise<any>((resolve, reject) => {
-            wx.getUserInfo({
-              success: (res) => {
-                resolve(res)
-              },
-              fail: (err) => {
-                // 用户未授权或拒绝，不影响登录流程
-                console.log('获取用户信息失败（可能未授权）:', err)
-                resolve(null)
-              }
-            })
-          })
-          
-          if (userInfoRes && userInfoRes.userInfo) {
-            wxUserInfo = {
-              nickName: userInfoRes.userInfo.nickName,
-              avatarUrl: userInfoRes.userInfo.avatarUrl
-            }
-            console.log('成功获取用户信息:', wxUserInfo)
-          }
-        } catch (err) {
-          console.log('获取用户信息失败，继续登录流程:', err)
-          // 获取用户信息失败不影响登录
-        }
+      // 2. 使用传入的用户信息（如果已通过按钮授权获取）
+      const wxUserInfo = userInfo || null
+      if (wxUserInfo) {
+        console.log('使用授权获取的用户信息:', wxUserInfo)
       }
 
       // 3. 调用后端登录接口
@@ -144,5 +119,4 @@ App<AppOption>({
       this.globalData.userInfo = undefined
     }
   }
-})
 })

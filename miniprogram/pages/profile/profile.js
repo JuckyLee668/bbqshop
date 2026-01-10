@@ -85,23 +85,40 @@ Page({
     }
   },
 
-  // 一键登录（同时获取头像和昵称）
+  // 一键登录（登录后引导完善头像和昵称）
   async handleOneClickLogin() {
     if (this.data.loginLoading) return
     
     try {
       this.setData({ loginLoading: true })
       
-      // 调用 app 中的登录方法（会自动获取用户信息）
+      // 1. 先完成登录（获取 code 和 openid）
       const app = getApp()
       await app.wxLogin()
       
-      // 登录成功后重新加载用户信息
+      // 2. 登录成功后重新加载用户信息
       await this.loadUserInfo()
+      
+      // 3. 检查是否缺少头像或昵称，如果缺少则提示用户完善
+      const userInfo = this.data.userInfo
+      if (!userInfo || !userInfo.avatarUrl || !userInfo.nickName || userInfo.nickName === '微信用户') {
+        wx.showModal({
+          title: '完善个人信息',
+          content: '为了更好的使用体验，请完善您的头像和昵称',
+          confirmText: '立即完善',
+          cancelText: '稍后',
+          success: (res) => {
+            if (res.confirm) {
+              // 打开编辑弹窗
+              this.editUserInfo()
+            }
+          }
+        })
+      }
       
     } catch (err) {
       console.error('一键登录失败:', err)
-      // 错误已在 app.wxLogin 中处理，这里不需要再次提示
+      // 错误已在 app.wxLogin 中处理
     } finally {
       this.setData({ loginLoading: false })
     }
