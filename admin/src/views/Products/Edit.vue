@@ -39,6 +39,8 @@
             list-type="picture-card"
             :limit="5"
             accept="image/*"
+            name="file"
+            :auto-upload="true"
           >
             <el-icon><Plus /></el-icon>
           </el-upload>
@@ -147,6 +149,15 @@ const rules = {
   stock: [{ required: true, message: '请输入库存', trigger: 'blur' }]
 }
 
+const getImageUrl = (relativeUrl: string) => {
+  if (!relativeUrl) return ''
+  if (relativeUrl.startsWith('http')) return relativeUrl
+  const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+  // 移除 /v1 后缀，如果存在
+  const cleanBaseUrl = baseUrl.replace(/\/v1\/?$/, '')
+  return cleanBaseUrl + (relativeUrl.startsWith('/') ? relativeUrl : '/' + relativeUrl)
+}
+
 const loadProduct = async () => {
   try {
     const data = await request({
@@ -170,9 +181,12 @@ const loadProduct = async () => {
       status: data.status || 'on_sale'
     })
     // 设置图片列表用于显示
-    imageList.value = (data.images || []).map((url: string) => ({
-      url: url.startsWith('http') ? url : import.meta.env.VITE_API_BASE_URL.replace('/v1', '') + url,
-      response: { data: { url } }
+    imageList.value = (data.images || []).map((url: string, index: number) => ({
+      uid: Date.now() + index,
+      name: `image-${index}`,
+      url: getImageUrl(url),
+      status: 'success',
+      response: { code: 200, data: { url } }
     }))
   } catch (err: any) {
     ElMessage.error(err.message || '加载失败')
@@ -183,6 +197,15 @@ const handleImageSuccess = (response: any, file: any) => {
   if (response.code === 200 && response.data) {
     const imageUrl = response.data.url || response.data
     form.images.push(imageUrl)
+    // 同步更新 imageList 以便 el-upload 组件正确显示
+    const fullUrl = getImageUrl(imageUrl)
+    imageList.value.push({
+      uid: file.uid || Date.now() + Math.random(),
+      name: file.name || 'image',
+      url: fullUrl,
+      status: 'success',
+      response: { code: 200, data: { url: imageUrl } }
+    })
     ElMessage.success('图片上传成功')
   } else {
     ElMessage.error(response.message || '图片上传失败')
@@ -190,13 +213,35 @@ const handleImageSuccess = (response: any, file: any) => {
 }
 
 const handleImageRemove = (file: any) => {
-  const url = file.response?.data?.url || file.url
-  if (url) {
-    const index = form.images.indexOf(url)
+  // 获取相对路径（如 /uploads/xxx.png）
+  let relativeUrl = file.response?.data?.url
+  if (!relativeUrl && file.url) {
+    // 如果 file.url 是完整URL，提取相对路径
+    const baseUrl = import.meta.env.VITE_API_BASE_URL || ''
+    const cleanBaseUrl = baseUrl.replace(/\/v1\/?$/, '')
+    if (file.url.startsWith(cleanBaseUrl)) {
+      relativeUrl = file.url.replace(cleanBaseUrl, '')
+    } else if (file.url.startsWith('/uploads/')) {
+      relativeUrl = file.url
+    } else if (file.url.startsWith('http')) {
+      // 如果是完整URL但没有匹配baseUrl，尝试提取路径部分
+      try {
+        const urlObj = new URL(file.url)
+        relativeUrl = urlObj.pathname
+      } catch (e) {
+        // 如果解析失败，忽略
+      }
+    }
+  }
+  
+  if (relativeUrl) {
+    // 从 form.images 中移除
+    const index = form.images.indexOf(relativeUrl)
     if (index > -1) {
       form.images.splice(index, 1)
     }
   }
+  // imageList 的更新由 el-upload 组件自动处理
 }
 
 const handleImageError = (err: any) => {
@@ -234,8 +279,11 @@ const getAddonImageList = (index: number) => {
   const image = form.addons[index]?.image
   if (!image) return []
   return [{
-    url: image.startsWith('http') ? image : import.meta.env.VITE_API_BASE_URL.replace('/v1', '') + image,
-    response: { data: { url: image } }
+    uid: Date.now() + index,
+    name: `addon-image-${index}`,
+    url: getImageUrl(image),
+    status: 'success',
+    response: { code: 200, data: { url: image } }
   }]
 }
 

@@ -4,6 +4,7 @@ const { ensureLogin, checkLogin } = require('../../utils/auth.js');
 
 Page({
   data: {
+    isLoggedIn: false,
     userInfo: null,
     stats: {
       orderCount: 0,
@@ -22,7 +23,8 @@ Page({
       avatarUrl: '',
       phone: '',
       openid: ''
-    }
+    },
+    loginLoading: false
   },
 
   onLoad() {
@@ -36,9 +38,24 @@ Page({
 
   // 加载用户信息
   async loadUserInfo() {
+    // 先检查登录状态
+    const isLoggedIn = checkLogin()
+    this.setData({ isLoggedIn })
+    
+    if (!isLoggedIn) {
+      // 未登录，清空数据
+      this.setData({
+        userInfo: null,
+        stats: { orderCount: 0, totalConsumption: 0, points: 0 },
+        orderStats: { pending: 0, making: 0, completed: 0, cancelled: 0 }
+      })
+      return
+    }
+    
     try {
       const userInfo = await apiService.user.getInfo()
       this.setData({
+        isLoggedIn: true,
         userInfo: {
           nickName: userInfo.nickName || '微信用户',
           avatarUrl: userInfo.avatarUrl,
@@ -59,6 +76,34 @@ Page({
       })
     } catch (err) {
       console.error('加载用户信息失败:', err)
+      // 如果获取用户信息失败，可能是 token 过期，清除登录状态
+      if (err.message && err.message.includes('401')) {
+        this.setData({ isLoggedIn: false })
+        wx.removeStorageSync('token')
+        wx.removeStorageSync('userInfo')
+      }
+    }
+  },
+
+  // 一键登录（同时获取头像和昵称）
+  async handleOneClickLogin() {
+    if (this.data.loginLoading) return
+    
+    try {
+      this.setData({ loginLoading: true })
+      
+      // 调用 app 中的登录方法（会自动获取用户信息）
+      const app = getApp()
+      await app.wxLogin()
+      
+      // 登录成功后重新加载用户信息
+      await this.loadUserInfo()
+      
+    } catch (err) {
+      console.error('一键登录失败:', err)
+      // 错误已在 app.wxLogin 中处理，这里不需要再次提示
+    } finally {
+      this.setData({ loginLoading: false })
     }
   },
 

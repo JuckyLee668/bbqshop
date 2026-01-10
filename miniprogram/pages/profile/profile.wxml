@@ -1,6 +1,25 @@
 <view class="profile-container">
-  <!-- 用户信息区域 -->
-  <view class="user-banner">
+  <!-- 未登录状态：一键登录 -->
+  <view wx:if="{{!isLoggedIn}}" class="login-banner">
+    <view class="login-content">
+      <t-icon name="user" size="80px" color="#fff" />
+      <text class="login-title">欢迎使用手工烤面筋</text>
+      <text class="login-desc">一键登录，享受便捷服务</text>
+      <button 
+        class="login-button"
+        bindtap="handleOneClickLogin"
+        loading="{{loginLoading}}"
+        disabled="{{loginLoading}}"
+      >
+        <t-icon name="wechat" size="20px" color="#FF6B35" />
+        <text style="margin-left: 8px;">微信一键登录</text>
+      </button>
+      <text class="login-tip">点击登录即表示同意用户协议和隐私政策</text>
+    </view>
+  </view>
+
+  <!-- 已登录状态：用户信息区域 -->
+  <view wx:else class="user-banner">
     <view class="user-info" bindtap="editUserInfo">
       <view class="avatar-wrapper">
         <image wx:if="{{userInfo && userInfo.avatarUrl}}" src="{{userInfo.avatarUrl}}" class="avatar-image" />
@@ -29,8 +48,8 @@
     </view>
   </view>
 
-  <!-- 我的订单 -->
-  <view class="order-section">
+  <!-- 我的订单（仅登录后显示） -->
+  <view wx:if="{{isLoggedIn}}" class="order-section">
     <view class="section-header">
       <text class="section-title">我的订单</text>
       <view class="section-more" bindtap="viewAllOrders">
@@ -70,8 +89,8 @@
     </view>
   </view>
 
-  <!-- 功能菜单 -->
-  <t-cell-group>
+  <!-- 功能菜单（仅登录后显示） -->
+  <t-cell-group wx:if="{{isLoggedIn}}">
     <t-cell 
       title="我的地址" 
       left-icon="location"

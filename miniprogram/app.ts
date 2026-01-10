@@ -28,15 +28,21 @@ App<AppOption>({
     }
   },
 
-  // 微信登录
-  async wxLogin() {
+  // 微信一键登录
+  async wxLogin(userInfo?: { nickName?: string; avatarUrl?: string }) {
     try {
       wx.showLoading({ title: '登录中...' })
       
-      // 获取微信登录code
-      const res = await new Promise<any>((resolve, reject) => {
+      // 1. 获取微信登录code（微信官方推荐方式）
+      const loginRes = await new Promise<any>((resolve, reject) => {
         wx.login({
-          success: resolve,
+          success: (res) => {
+            if (res.code) {
+              resolve(res)
+            } else {
+              reject(new Error('获取登录凭证失败'))
+            }
+          },
           fail: (err) => {
             console.error('wx.login失败:', err)
             reject(new Error('获取登录凭证失败，请重试'))
@@ -44,38 +50,61 @@ App<AppOption>({
         })
       })
 
-      // 注意：wx.getUserProfile 只能在用户点击事件中调用
-      // 在自动登录流程中不调用，openid是通过code在后端获取的
-      // 用户信息可以在登录后通过编辑资料功能获取
-      const userInfo = null
-
-      // 调用后端登录接口（openid是通过code在后端获取的，不依赖userInfo）
-      const loginData = await apiService.auth.wxLogin(res.code, userInfo)
-      
-      // 验证登录数据是否包含openid
-      if (!loginData || !loginData.userInfo || !loginData.userInfo.openid) {
-        // 如果登录后没有openid，尝试重新获取用户信息
+      // 2. 尝试获取用户信息（头像和昵称）
+      let wxUserInfo = userInfo || null
+      if (!wxUserInfo) {
         try {
-          const fullUserInfo = await apiService.user.getInfo();
-          if (fullUserInfo && fullUserInfo.openid) {
-            loginData.userInfo.openid = fullUserInfo.openid;
-          } else {
-            throw new Error('登录失败：未获取到微信ID')
+          // 尝试从微信获取用户信息（如果用户已授权）
+          const userInfoRes = await new Promise<any>((resolve, reject) => {
+            wx.getUserInfo({
+              success: (res) => {
+                resolve(res)
+              },
+              fail: (err) => {
+                // 用户未授权或拒绝，不影响登录流程
+                console.log('获取用户信息失败（可能未授权）:', err)
+                resolve(null)
+              }
+            })
+          })
+          
+          if (userInfoRes && userInfoRes.userInfo) {
+            wxUserInfo = {
+              nickName: userInfoRes.userInfo.nickName,
+              avatarUrl: userInfoRes.userInfo.avatarUrl
+            }
+            console.log('成功获取用户信息:', wxUserInfo)
           }
         } catch (err) {
-          console.error('获取用户openid失败:', err)
-          throw new Error('登录失败：未获取到微信ID，请检查服务器配置')
+          console.log('获取用户信息失败，继续登录流程:', err)
+          // 获取用户信息失败不影响登录
         }
       }
+
+      // 3. 调用后端登录接口
+      // openid 和 session_key 在后端通过 code 获取，前端不需要处理
+      const loginData = await apiService.auth.wxLogin(loginRes.code, wxUserInfo)
       
-      // 保存token和用户信息（确保包含openid）
+      // 3. 验证登录结果
+      if (!loginData || !loginData.token) {
+        throw new Error('登录失败：未获取到登录凭证')
+      }
+      
+      // 4. 保存登录信息
       wx.setStorageSync('token', loginData.token)
-      wx.setStorageSync('userInfo', loginData.userInfo)
-      
+      if (loginData.userInfo) {
+        wx.setStorageSync('userInfo', loginData.userInfo)
+        this.globalData.userInfo = loginData.userInfo
+      }
       this.globalData.token = loginData.token
-      this.globalData.userInfo = loginData.userInfo
       
       wx.hideLoading()
+      wx.showToast({
+        title: '登录成功',
+        icon: 'success',
+        duration: 1500
+      })
+      
       return loginData
     } catch (err: any) {
       wx.hideLoading()
@@ -115,4 +144,5 @@ App<AppOption>({
       this.globalData.userInfo = undefined
     }
   }
+})
 })

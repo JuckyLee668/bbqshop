@@ -114,16 +114,23 @@ const loadUsers = async () => {
     
     const data = await getUsers(params)
     userList.value = (data.list || []).map((item: any) => {
+      // 处理头像URL
       const img = item.avatarUrl
-      const fullImage =
-        !img
-          ? ''
-          : img.startsWith('http')
-          ? img
-          : img.startsWith('/')
-          ? `${baseUrl}${img}`
-          : `${baseUrl}/${img}`
-      return { ...item, avatarUrl: fullImage }
+      let fullImage = ''
+      if (img) {
+        if (img.startsWith('http')) {
+          fullImage = img
+        } else if (img.startsWith('/')) {
+          fullImage = `${baseUrl}${img}`
+        } else {
+          fullImage = `${baseUrl}/${img}`
+        }
+      }
+      return { 
+        ...item, 
+        avatarUrl: fullImage,
+        nickName: item.nickName || '微信用户' // 确保昵称有默认值
+      }
     })
     pagination.total = data.total || 0
   } catch (err: any) {

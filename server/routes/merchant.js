@@ -581,18 +581,29 @@ router.get('/users', async (req, res) => {
       addressMap[userId].push(addr);
     });
 
-    const list = users.map(user => ({
-      id: user._id,
-      nickName: user.nickName || '微信用户',
-      phone: user.phone || null,
-      openid: user.openid,
-      avatarUrl: user.avatarUrl,
-      orderCount: orderCountMap[user._id.toString()] || 0,
-      totalConsumption: user.totalConsumption || 0,
-      points: user.points || 0,
-      addresses: addressMap[user._id.toString()] || [],
-      createdAt: user.createdAt
-    }));
+    const baseUrl = req.protocol + '://' + req.get('host');
+    const list = users.map(user => {
+      // 处理头像URL，确保返回完整URL
+      let avatarUrl = user.avatarUrl;
+      if (avatarUrl && !avatarUrl.startsWith('http')) {
+        avatarUrl = avatarUrl.startsWith('/') 
+          ? `${baseUrl}${avatarUrl}`
+          : `${baseUrl}/${avatarUrl}`;
+      }
+      
+      return {
+        id: user._id,
+        nickName: user.nickName || '微信用户',
+        phone: user.phone || null,
+        openid: user.openid,
+        avatarUrl: avatarUrl || null,
+        orderCount: orderCountMap[user._id.toString()] || 0,
+        totalConsumption: user.totalConsumption || 0,
+        points: user.points || 0,
+        addresses: addressMap[user._id.toString()] || [],
+        createdAt: user.createdAt
+      };
+    });
 
     success(res, {
       list,

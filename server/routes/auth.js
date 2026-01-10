@@ -92,10 +92,29 @@ router.post('/wx-login', async (req, res) => {
         }
       } else {
         console.log('找到已存在用户，ID:', user._id);
-        // 更新用户信息（如果提供了新信息）
-        if (userInfo?.nickName) user.nickName = userInfo.nickName;
-        if (userInfo?.avatarUrl) user.avatarUrl = userInfo.avatarUrl;
-        await user.save();
+        // 更新用户信息（如果提供了新信息，或者现有信息为空）
+        let needSave = false;
+        if (userInfo?.nickName && (!user.nickName || user.nickName === '微信用户')) {
+          user.nickName = userInfo.nickName;
+          needSave = true;
+        }
+        if (userInfo?.avatarUrl && !user.avatarUrl) {
+          user.avatarUrl = userInfo.avatarUrl;
+          needSave = true;
+        }
+        // 如果提供了新信息且与现有信息不同，也更新
+        if (userInfo?.nickName && user.nickName !== userInfo.nickName) {
+          user.nickName = userInfo.nickName;
+          needSave = true;
+        }
+        if (userInfo?.avatarUrl && user.avatarUrl !== userInfo.avatarUrl) {
+          user.avatarUrl = userInfo.avatarUrl;
+          needSave = true;
+        }
+        if (needSave) {
+          await user.save();
+          console.log('用户信息已更新');
+        }
       }
     } catch (dbErr) {
       console.error('数据库操作失败:', dbErr);

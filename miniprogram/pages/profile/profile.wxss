@@ -4,6 +4,69 @@
   padding-bottom: 100rpx;
 }
 
+/* 登录引导区域 */
+.login-banner {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+  padding: 120rpx 32rpx 80rpx;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 500rpx;
+}
+
+.login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32rpx;
+  width: 100%;
+}
+
+.login-title {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #fff;
+}
+
+.login-desc {
+  font-size: 28rpx;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 16rpx;
+}
+
+.login-button {
+  width: 100%;
+  max-width: 600rpx;
+  margin-top: 40rpx;
+  background: #fff;
+  color: #FF6B35;
+  font-size: 32rpx;
+  font-weight: bold;
+  border: none;
+  border-radius: 50rpx;
+  padding: 24rpx 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8rpx 16rpx rgba(0, 0, 0, 0.1);
+}
+
+.login-button::after {
+  border: none;
+}
+
+.login-button[disabled] {
+  opacity: 0.6;
+}
+
+.login-tip {
+  font-size: 24rpx;
+  color: rgba(255, 255, 255, 0.7);
+  margin-top: 32rpx;
+  text-align: center;
+}
+
 /* 用户信息区域 */
 .user-banner {
   background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
