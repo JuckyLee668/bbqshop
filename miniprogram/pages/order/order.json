@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "订单中心",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-tag": "tdesign-miniprogram/tag/tag",
+    "t-tabs": "tdesign-miniprogram/tabs/tabs",
+    "t-tab-panel": "tdesign-miniprogram/tab-panel/tab-panel",
+    "t-button": "tdesign-miniprogram/button/button"
+  }
+}

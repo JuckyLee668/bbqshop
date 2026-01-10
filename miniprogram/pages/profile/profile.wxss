@@ -1,0 +1,314 @@
+.profile-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 100rpx;
+}
+
+/* 用户信息区域 */
+.user-banner {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+  padding: 64rpx 32rpx 48rpx;
+  color: #fff;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 32rpx;
+  margin-bottom: 48rpx;
+}
+
+.avatar-wrapper {
+  width: 128rpx;
+  height: 128rpx;
+  background: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.user-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.user-name {
+  font-size: 40rpx;
+  font-weight: bold;
+}
+
+.user-phone {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+.user-stats {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+
+.stat-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.stat-value {
+  font-size: 48rpx;
+  font-weight: bold;
+}
+
+.stat-label {
+  font-size: 28rpx;
+  opacity: 0.9;
+}
+
+/* 我的订单 */
+.order-section {
+  background: #fff;
+  margin-top: 16rpx;
+  padding: 32rpx;
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 32rpx;
+}
+
+.section-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.section-more {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.order-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 32rpx;
+}
+
+.order-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.order-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+/* 自定义徽章样式，显示在图标右上角 */
+.order-icon-badge {
+  position: absolute;
+  top: -6rpx;
+  right: -6rpx;
+  background-color: #f5222d;
+  color: white;
+  font-size: 20rpx;
+  min-width: 32rpx;
+  height: 32rpx;
+  border-radius: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 6rpx;
+  box-sizing: border-box;
+  line-height: 1;
+  font-weight: bold;
+  z-index: 10;
+}
+
+.order-label {
+  font-size: 24rpx;
+  color: #666;
+}
+
+.user-openid {
+  font-size: 24rpx;
+  opacity: 0.8;
+  margin-top: 4rpx;
+}
+
+/* 编辑弹窗样式 */
+.edit-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 90%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32rpx;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.modal-title {
+  font-size: 36rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.modal-body {
+  padding: 32rpx;
+}
+
+.form-item {
+  margin-bottom: 32rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 28rpx;
+  color: #333;
+  margin-bottom: 16rpx;
+}
+
+.avatar-button {
+  width: 160rpx;
+  height: 160rpx;
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  margin: 0;
+  background: #f5f5f5;
+  border: 2rpx dashed #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.avatar-button::after {
+  border: none;
+}
+
+.avatar-preview {
+  width: 100%;
+  height: 100%;
+}
+
+.avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8rpx;
+  color: #999;
+  font-size: 24rpx;
+}
+
+.nickname-input {
+  width: 100%;
+  height: 80rpx;
+  padding: 0 24rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.phone-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+}
+
+.phone-text {
+  font-size: 28rpx;
+  color: #333;
+}
+
+.bind-phone-btn {
+  padding: 12rpx 24rpx;
+  background: #FF6B35;
+  color: #fff;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+  line-height: 1;
+}
+
+.bind-phone-btn::after {
+  border: none;
+}
+
+.readonly-text {
+  padding: 24rpx;
+  background: #f5f5f5;
+  border-radius: 8rpx;
+  font-size: 28rpx;
+  color: #666;
+}
+
+.modal-footer {
+  display: flex;
+  border-top: 1rpx solid #f0f0f0;
+}
+
+.cancel-btn,
+.save-btn {
+  flex: 1;
+  height: 100rpx;
+  line-height: 100rpx;
+  text-align: center;
+  font-size: 32rpx;
+  border: none;
+  border-radius: 0;
+}
+
+.cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+  border-right: 1rpx solid #f0f0f0;
+}
+
+.save-btn {
+  background: #FF6B35;
+  color: #fff;
+}
+
+.cancel-btn::after,
+.save-btn::after {
+  border: none;
+}

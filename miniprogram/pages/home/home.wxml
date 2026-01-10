@@ -1,0 +1,114 @@
+<view class="home-container">
+  <!-- 顶部导航栏 -->
+  <view class="navbar">
+    <view class="navbar-content">
+      <view class="navbar-left">
+        <view class="logo">面</view>
+        <text class="navbar-title">手工烤面筋</text>
+      </view>
+      <view class="navbar-right">
+        <t-icon name="notification" size="20px" color="#666" />
+        <view class="cart-icon-wrapper" bindtap="goToCart">
+          <t-icon name="shopping-cart" size="20px" color="#666" />
+          <t-badge count="{{cartCount}}" offset="[-5, 5]" />
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 门店信息横幅 -->
+  <view class="store-banner" wx:if="{{storeInfo}}">
+    <view class="store-info">
+      <view class="store-header">
+        <view class="store-name-wrapper">
+          <text class="store-name">{{storeInfo.name}}</text>
+          <text class="store-address">📍 {{storeInfo.address}}</text>
+        </view>
+        <t-tag theme="primary" variant="light" size="small">{{storeInfo.status}}</t-tag>
+      </view>
+      <view class="store-meta">
+        <view class="meta-item">
+          <t-icon name="time" size="14px" color="#fff" />
+          <text>{{storeInfo.businessHours}}</text>
+        </view>
+        <view class="meta-item">
+          <t-icon name="location" size="14px" color="#fff" />
+          <text>{{storeInfo.deliveryRange}}km内配送</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 特价套餐 -->
+  <view class="section" wx:if="{{special}}">
+    <view class="section-header">
+      <text class="section-title">特价套餐</text>
+      <text
+        class="section-more"
+        bindtap="goToSpecialPackageDetail"
+        data-id="{{special.id}}"
+      >查看详情 ></text>
+    </view>
+    <view
+      class="recommend-card"
+      bindtap="goToSpecialPackageDetail"
+      data-id="{{special.id}}"
+    >
+      <view class="recommend-image-wrapper">
+        <image wx:if="{{special.image}}" src="{{special.image}}" class="recommend-image" mode="aspectFill" />
+        <view wx:else class="recommend-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+        <t-tag wx:if="{{special.tag}}" theme="danger" size="small" style="position: absolute; top: 12rpx; right: 12rpx;">{{special.tag}}</t-tag>
+        <view class="recommend-content">
+          <text class="recommend-title">{{special.name}}</text>
+          <text class="recommend-desc">{{special.desc}}</text>
+          <view class="recommend-price">
+            <text class="price-current">¥{{special.price}}</text>
+            <text class="price-old" wx:if="{{special.oldPrice}}">¥{{special.oldPrice}}</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 热销商品 -->
+  <view class="section">
+    <view class="section-header">
+      <text class="section-title">热销商品</text>
+      <text class="section-more" bindtap="goToProductList">查看全部 ></text>
+    </view>
+    <t-grid column="{{2}}" border="{{false}}">
+      <t-grid-item wx:for="{{hotProducts}}" wx:key="id" bindtap="goToProductDetail" data-id="{{item.id}}">
+        <view class="product-card">
+          <view class="product-image-wrapper">
+            <image wx:if="{{item.image}}" src="{{item.image}}" class="product-image" mode="aspectFill" />
+            <view wx:else class="product-image" style="background: {{item.gradient}}"></view>
+            <view class="favorite-icon">
+              <t-icon name="heart" size="20px" color="{{item.isFavorite ? '#FF6B35' : '#fff'}}" />
+            </view>
+          </view>
+          <view class="product-info">
+            <text class="product-name">{{item.name}}</text>
+            <text class="product-desc">{{item.desc}}</text>
+            <view class="product-footer">
+              <text class="product-price">¥{{item.price}}</text>
+              <view class="add-btn" catchtap="addToCart" data-id="{{item.id}}">
+                <t-icon name="add" size="16px" color="#fff" />
+              </view>
+            </view>
+          </view>
+        </view>
+      </t-grid-item>
+    </t-grid>
+  </view>
+
+  <!-- 优惠活动入口 -->
+  <view class="section" wx:if="{{promotions.length > 0}}">
+    <view class="promotion-card" wx:for="{{promotions}}" wx:key="id">
+      <view class="promotion-content">
+        <text class="promotion-title">{{item.title}}</text>
+        <text class="promotion-desc">{{item.desc}}</text>
+      </view>
+      <t-button theme="primary" variant="outline" size="small" bindtap="getPromotion">立即领取</t-button>
+    </view>
+  </view>
+</view>

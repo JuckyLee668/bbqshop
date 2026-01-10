@@ -1,0 +1,152 @@
+.address-page {
+  min-height: 100vh;
+  background-color: #f5f5f5;
+  padding-bottom: 40rpx;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24rpx 32rpx;
+}
+
+.title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.address-list {
+  max-height: calc(100vh - 120rpx);
+}
+
+.address-list-container {
+  padding: 0 24rpx 24rpx;
+  background: #fff;
+}
+
+.address-item {
+  display: flex;
+  flex-direction: column;
+  padding: 32rpx 0;
+  border-bottom: 1rpx solid #e5e5e5;
+  position: relative;
+}
+
+.address-item:last-child {
+  border-bottom: none;
+}
+
+.address-main {
+  flex: 1;
+}
+
+.address-region {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 8rpx;
+}
+
+.address-name {
+  font-size: 36rpx;
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.contact-info {
+  display: flex;
+  align-items: center;
+  font-size: 32rpx;
+  color: #333;
+}
+
+.contact-name {
+  margin-right: 16rpx;
+}
+
+.default-tag {
+  margin-left: 0;
+}
+
+.edit-icon {
+  position: absolute;
+  right: 0;
+  top: 32rpx;
+  opacity: 0.5;
+  padding: 8rpx;
+}
+
+/* 编辑弹层 */
+.edit-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  z-index: 999;
+}
+
+.edit-panel {
+  width: 90%;
+  max-width: 600rpx;
+  background: #fff;
+  border-radius: 24rpx 24rpx 0 0;
+  padding: 32rpx 40rpx 40rpx;
+  margin: 0 auto;
+}
+
+.edit-header {
+  margin-bottom: 16rpx;
+}
+
+.edit-title {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.edit-body {
+  padding: 8rpx 0 16rpx;
+}
+
+.form-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20rpx;
+}
+
+.form-label {
+  width: 160rpx;
+  font-size: 28rpx;
+  color: #333;
+}
+
+.form-input {
+  flex: 1;
+  min-height: 72rpx;
+  padding: 12rpx 16rpx;
+  border-radius: 12rpx;
+  background: #f5f5f5;
+  font-size: 28rpx;
+}
+
+.default-item {
+  justify-content: space-between;
+}
+
+.edit-footer {
+  display: flex;
+  gap: 24rpx;
+  margin-top: 8rpx;
+}
+
+.edit-footer t-button {
+  flex: 1;
+}
+

@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>购物车 - 手工烤面筋</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航栏 -->
+    <div class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-gray-600 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                </svg>
+                <span class="font-semibold text-gray-800">购物车</span>
+            </div>
+            <button class="text-gray-600 text-sm">清空</button>
+        </div>
+    </div>
+
+    <!-- 购物车商品列表 -->
+    <div class="px-4 py-4 space-y-3 pb-32">
+        <!-- 商品项1 -->
+        <div class="bg-white rounded-xl shadow-sm p-3">
+            <div class="flex items-center space-x-3">
+                <input type="checkbox" class="w-5 h-5 text-orange-500 rounded" checked>
+                <div class="w-20 h-20 bg-gradient-to-br from-orange-300 to-orange-500 rounded-lg flex-shrink-0"></div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-800 mb-1">原味烤面筋</h4>
+                    <p class="text-gray-500 text-xs mb-2">原味 / 中辣 / 加葱花</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-orange-500 font-bold">¥5</span>
+                        <div class="flex items-center space-x-3">
+                            <button class="border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                </svg>
+                            </button>
+                            <span class="text-gray-800 font-medium w-6 text-center">2</span>
+                            <button class="border-2 border-orange-500 bg-orange-500 rounded-full w-8 h-8 flex items-center justify-center text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 商品项2 -->
+        <div class="bg-white rounded-xl shadow-sm p-3">
+            <div class="flex items-center space-x-3">
+                <input type="checkbox" class="w-5 h-5 text-orange-500 rounded" checked>
+                <div class="w-20 h-20 bg-gradient-to-br from-red-300 to-red-500 rounded-lg flex-shrink-0"></div>
+                <div class="flex-1">
+                    <h4 class="font-semibold text-gray-800 mb-1">香辣烤面筋</h4>
+                    <p class="text-gray-500 text-xs mb-2">香辣 / 重辣</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-orange-500 font-bold">¥5</span>
+                        <div class="flex items-center space-x-3">
+                            <button class="border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                </svg>
+                            </button>
+                            <span class="text-gray-800 font-medium w-6 text-center">1</span>
+                            <button class="border-2 border-orange-500 bg-orange-500 rounded-full w-8 h-8 flex items-center justify-center text-white">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- 商品项3 -->
+        <div class="bg-white rounded-xl shadow-sm p-3">
+            <div class="flex items-center space-x-3">
+                <input type="checkbox" class="w-5 h-5 text-orange-500 rounded">
+                <div class="w-20 h-20 bg-gradient-to-br from-purple-300 to-purple-500 rounded-lg flex-shrink-0 opacity-50"></div>
+                <div class="flex-1 opacity-50">
+                    <h4 class="font-semibold text-gray-800 mb-1">套餐A</h4>
+                    <p class="text-gray-500 text-xs mb-2">3串面筋+1串豆皮</p>
+                    <div class="flex items-center justify-between">
+                        <span class="text-orange-500 font-bold">¥18</span>
+                        <div class="flex items-center space-x-3">
+                            <button class="border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                                </svg>
+                            </button>
+                            <span class="text-gray-800 font-medium w-6 text-center">1</span>
+                            <button class="border-2 border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-400" disabled>
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <button class="text-gray-400">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部结算栏 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200">
+        <div class="px-4 py-3">
+            <div class="flex items-center justify-between mb-3">
+                <div class="flex items-center space-x-2">
+                    <input type="checkbox" class="w-5 h-5 text-orange-500 rounded" checked>
+                    <span class="text-gray-700 text-sm">全选</span>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs text-gray-500">合计</div>
+                    <div class="text-orange-500 font-bold text-lg">¥15</div>
+                </div>
+            </div>
+            <button class="w-full bg-orange-500 text-white py-3 rounded-lg font-medium">
+                去结算(2)
+            </button>
+        </div>
+    </div>
+</body>
+</html>

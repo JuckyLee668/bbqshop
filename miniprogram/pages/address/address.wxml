@@ -1,0 +1,100 @@
+<view class="address-page">
+  <view class="header">
+    <text class="title">我的地址</text>
+    <t-button size="small" theme="primary" bindtap="onAdd">新增地址</t-button>
+  </view>
+
+  <scroll-view class="address-list" scroll-y>
+    <view wx:if="{{list.length > 0}}" class="address-list-container">
+      <view
+        class="address-item"
+        wx:for="{{list}}"
+        wx:key="id"
+        bindtap="onSelect"
+        data-item="{{item}}"
+      >
+        <view class="address-main">
+          <view class="address-region" wx:if="{{item.address}}">{{item.address}}</view>
+          <view class="address-name">{{item.detail || item.address}}</view>
+          <view class="contact-info">
+            <text class="contact-name">{{item.name}} {{item.phone}}</text>
+            <t-tag wx:if="{{item.isDefault}}" size="small" theme="warning" variant="light" class="default-tag">默认</t-tag>
+          </view>
+        </view>
+        <view class="edit-icon" catchtap="onEdit" data-item="{{item}}">
+          <t-icon name="edit" size="20px" color="#999" />
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="还没有添加地址" />
+  </scroll-view>
+
+  <!-- 编辑/新增地址表单 -->
+  <view wx:if="{{editing}}" class="edit-mask">
+    <view class="edit-panel">
+      <view class="edit-header">
+        <text class="edit-title">{{form.id ? '编辑地址' : '新增地址'}}</text>
+      </view>
+      <view class="edit-body">
+        <view class="form-item">
+          <text class="form-label">收货人</text>
+          <input
+            class="form-input"
+            placeholder="请输入收货人姓名"
+            value="{{form.name}}"
+            bindinput="onInputChange"
+            data-field="name"
+          />
+        </view>
+        <view class="form-item">
+          <text class="form-label">联系电话</text>
+          <input
+            class="form-input"
+            placeholder="请输入手机号"
+            value="{{form.phone}}"
+            bindinput="onInputChange"
+            data-field="phone"
+          />
+        </view>
+        <view class="form-item">
+          <text class="form-label">所在地区</text>
+          <input
+            class="form-input"
+            placeholder="例如：北京市朝阳区"
+            value="{{form.address}}"
+            bindinput="onInputChange"
+            data-field="address"
+          />
+        </view>
+        <view class="form-item">
+          <text class="form-label">详细地址</text>
+          <input
+            class="form-input"
+            placeholder="如门牌号、楼层等"
+            value="{{form.detail}}"
+            bindinput="onInputChange"
+            data-field="detail"
+          />
+        </view>
+        <view class="form-item default-item">
+          <text class="form-label">设为默认地址</text>
+          <t-switch value="{{form.isDefault}}" bind:change="onDefaultChange" />
+        </view>
+      </view>
+      <view class="edit-footer">
+        <t-button 
+          wx:if="{{form.id}}" 
+          theme="danger" 
+          variant="outline" 
+          bindtap="onDeleteInEdit"
+          style="margin-right: 24rpx;"
+        >
+          删除
+        </t-button>
+        <t-button theme="default" variant="outline" bindtap="onCancelEdit">取消</t-button>
+        <t-button theme="primary" bindtap="onSave">保存</t-button>
+      </view>
+    </view>
+  </view>
+</view>
+

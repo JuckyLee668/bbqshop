@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "评价订单",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-rate": "tdesign-miniprogram/rate/rate"
+  }
+}

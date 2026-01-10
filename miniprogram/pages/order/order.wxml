@@ -1,0 +1,117 @@
+<view class="order-container">
+  <!-- 订单状态标签 -->
+  <t-tabs value="{{currentTab}}" bind:change="onTabChange" theme="normal">
+    <t-tab-panel value="all" label="全部"></t-tab-panel>
+    <t-tab-panel value="pending" label="待制作"></t-tab-panel>
+    <t-tab-panel value="making" label="制作中"></t-tab-panel>
+    <t-tab-panel value="completed" label="已完成"></t-tab-panel>
+    <t-tab-panel value="cancelled" label="已取消"></t-tab-panel>
+  </t-tabs>
+
+  <!-- 订单列表 -->
+  <scroll-view class="order-scroll" scroll-y>
+    <view class="order-list">
+      <view 
+        class="order-item {{item.status === 'cancelled' ? 'cancelled' : ''}}"
+        wx:for="{{orderList}}"
+        wx:key="id"
+      >
+        <view class="order-header">
+          <text class="order-number">订单号：{{item.orderNo}}</text>
+          <t-tag 
+            theme="{{item.status === 'pending' || item.status === 'paid' ? 'warning' : item.status === 'making' ? 'primary' : item.status === 'completed' ? (item.isReviewed ? 'default' : 'success') : 'default'}}" 
+            size="small"
+          >
+            {{item.statusText}}
+          </t-tag>
+        </view>
+        <view class="order-content">
+          <view 
+            class="order-product"
+            wx:for="{{item.items}}"
+            wx:key="index"
+            wx:for-item="product"
+          >
+            <image wx:if="{{product.image}}" src="{{product.image}}" class="product-image" mode="aspectFill" />
+            <view wx:else class="product-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+            <view class="product-info">
+              <text class="product-name">{{product.productName}} × {{product.quantity}}</text>
+              <text class="product-spec" wx:if="{{product.spec}}">{{product.spec}}</text>
+            </view>
+            <text class="product-price">¥{{product.price * product.quantity}}</text>
+          </view>
+          <view class="order-meta">
+            <text>配送方式：{{item.deliveryTypeText}}</text>
+            <text>{{item.createTime}}</text>
+          </view>
+          <view class="order-status-tip" wx:if="{{item.status === 'making'}}">
+            <t-icon name="loading" size="16px" color="#1890ff" />
+            <text>商家正在制作中，预计10分钟后完成</text>
+          </view>
+          <view class="cancel-reason" wx:if="{{item.status === 'cancelled'}}">
+            <text>取消原因：用户主动取消</text>
+          </view>
+          <view class="order-actions">
+            <t-button 
+              wx:if="{{item.status === 'pending' || item.status === 'paid'}}"
+              theme="default" 
+              variant="outline" 
+              size="small" 
+              bindtap="cancelOrder"
+              data-id="{{item.id}}"
+            >
+              取消订单
+            </t-button>
+            <t-button 
+              wx:if="{{item.status === 'pending' || item.status === 'paid'}}"
+              theme="primary" 
+              size="small" 
+              bindtap="contactMerchant"
+            >
+              联系商家
+            </t-button>
+            <t-button 
+              wx:if="{{item.status === 'making'}}"
+              theme="primary" 
+              size="small" 
+              bindtap="viewDetail"
+              data-id="{{item.id}}"
+            >
+              查看详情
+            </t-button>
+            <t-button 
+              wx:if="{{item.status === 'completed'}}"
+              theme="default" 
+              variant="outline" 
+              size="small" 
+              bindtap="reorder"
+            >
+              再来一单
+            </t-button>
+            <t-button 
+              wx:if="{{item.status === 'completed' && !item.isReviewed}}"
+              theme="primary" 
+              size="small" 
+              bindtap="rateOrder"
+              data-id="{{item.id}}"
+            >
+              评价
+            </t-button>
+            <t-button 
+              wx:if="{{item.status === 'cancelled'}}"
+              theme="default" 
+              variant="outline" 
+              size="small" 
+              bindtap="deleteOrder"
+              data-id="{{item.id}}"
+            >
+              删除订单
+            </t-button>
+          </view>
+        </view>
+      </view>
+      
+      <t-empty wx:if="{{orderList.length === 0 && !loading}}" description="暂无订单" />
+    </view>
+  </scroll-view>
+</view>

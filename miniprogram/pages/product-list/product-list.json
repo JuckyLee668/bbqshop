@@ -1,0 +1,8 @@
+{
+  "navigationBarTitleText": "商品列表",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-tag": "tdesign-miniprogram/tag/tag",
+    "t-badge": "tdesign-miniprogram/badge/badge"
+  }
+}

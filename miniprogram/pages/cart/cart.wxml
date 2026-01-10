@@ -1,0 +1,104 @@
+<view class="cart-container">
+  <!-- 顶部导航栏 -->
+  <view class="cart-header">
+    <text class="header-title">购物车</text>
+    <text class="clear-btn" bindtap="clearCart">清空</text>
+  </view>
+
+  <!-- 购物车商品列表 -->
+  <scroll-view class="cart-scroll" scroll-y>
+    <view wx:if="{{cartList.length > 0}}" class="cart-list">
+      <view 
+        class="cart-item"
+        wx:for="{{cartList}}"
+        wx:key="id"
+        data-index="{{index}}"
+      >
+        <t-checkbox 
+          checked="{{item.checked}}"
+          bind:change="toggleItem"
+          data-index="{{index}}"
+        />
+        <image wx:if="{{item.image}}" src="{{item.image}}" class="item-image" mode="aspectFill" />
+        <view wx:else class="item-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+        <view class="item-content">
+          <text class="item-name">{{item.name}}</text>
+          <text class="item-spec">{{item.spec}}</text>
+          <view class="item-footer">
+            <text class="item-price">¥{{item.price}}</text>
+            <t-stepper 
+              value="{{item.quantity}}" 
+              min="{{1}}" 
+              max="{{99}}"
+              bind:change="changeQuantity"
+              data-index="{{index}}"
+            />
+          </view>
+        </view>
+        <view class="delete-btn" bindtap="deleteItem" data-index="{{index}}">
+          <t-icon name="delete" size="20px" color="#999" />
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="购物车是空的" />
+  </scroll-view>
+
+  <!-- 底部结算栏 -->
+  <view class="cart-footer">
+    <!-- 配送方式选择 -->
+    <view class="delivery-section" wx:if="{{cartList.length > 0 && selectedCount > 0}}">
+      <view class="delivery-title">配送方式</view>
+      <view class="delivery-options">
+        <view 
+          class="delivery-option {{deliveryType === 'pickup' ? 'active' : ''}}"
+          bindtap="onDeliveryTypeChange"
+          data-type="pickup"
+        >
+          <t-icon name="location" size="20px" color="{{deliveryType === 'pickup' ? '#FF6B35' : '#999'}}" />
+          <text class="delivery-option-title">到店自取</text>
+          <text class="delivery-fee-tip-placeholder"></text>
+        </view>
+        <view 
+          class="delivery-option {{deliveryType === 'delivery' ? 'active' : ''}}"
+          bindtap="onDeliveryTypeChange"
+          data-type="delivery"
+        >
+          <t-icon name="deliver" size="20px" color="{{deliveryType === 'delivery' ? '#FF6B35' : '#999'}}" />
+          <text class="delivery-option-title">外卖配送</text>
+          <text wx:if="{{freeDeliveryText}}" class="delivery-fee-tip">
+            {{freeDeliveryText}}
+          </text>
+          <text wx:else class="delivery-fee-tip-placeholder"></text>
+        </view>
+      </view>
+    </view>
+    
+    <view class="footer-content">
+      <view class="footer-left">
+        <!-- 全选用 checkbox，但 value 不双向绑定，由 JS 控制 -->
+        <t-checkbox 
+          checked="{{selectAll}}"
+          bind:change="toggleSelectAll"
+        />
+        <text class="select-all-text">全选</text>
+      </view>
+      <view class="footer-right">
+        <view class="total-info">
+          <text class="total-label">合计</text>
+          <view class="total-price-wrapper">
+            <text class="total-price">¥{{finalTotalPrice}}</text>
+            <text wx:if="{{deliveryFee > 0}}" class="delivery-fee-text">(含配送费¥{{deliveryFeeText}})</text>
+          </view>
+        </view>
+        <t-button 
+          theme="primary" 
+          size="large"
+          bindtap="checkout"
+          disabled="{{selectedCount === 0}}"
+        >
+          去结算
+        </t-button>
+      </view>
+    </view>
+  </view>
+</view>

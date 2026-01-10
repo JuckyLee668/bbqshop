@@ -1,0 +1,66 @@
+<view class="product-list-container">
+  <view class="content-wrapper">
+    <!-- 左侧分类列表 -->
+    <scroll-view class="category-sidebar" scroll-y>
+      <view 
+        class="category-item {{currentCategory === item.id ? 'active' : ''}}"
+        wx:for="{{categories}}"
+        wx:key="id"
+        bindtap="switchCategory"
+        data-id="{{item.id}}"
+      >
+        {{item.name}}
+      </view>
+    </scroll-view>
+
+    <!-- 右侧商品列表 -->
+    <scroll-view class="product-scroll" scroll-y>
+    <view class="product-list">
+      <view 
+        class="product-item"
+        wx:for="{{productList}}"
+        wx:key="id"
+        bindtap="goToDetail"
+        data-id="{{item.id}}"
+      >
+        <view class="product-image-wrapper">
+          <image wx:if="{{item.image}}" src="{{item.image}}" class="product-image" mode="aspectFill" />
+          <view wx:else class="product-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+          <view wx:if="{{item.stock === 0}}" class="out-of-stock">
+            <text>缺货</text>
+          </view>
+        </view>
+        <view class="product-content">
+          <view class="product-header">
+            <text class="product-name">{{item.name}}</text>
+            <t-tag 
+              theme="{{item.stock > 0 ? 'success' : 'default'}}" 
+              size="small"
+            >
+              {{item.stock > 0 ? '有货' : '缺货'}}
+            </t-tag>
+          </view>
+          <text class="product-desc">{{item.desc}}</text>
+          <view class="product-price-wrapper">
+            <text class="product-price">¥{{item.price}}</text>
+            <text wx:if="{{item.oldPrice}}" class="product-old-price">¥{{item.oldPrice}}</text>
+            <t-tag wx:if="{{item.tag}}" theme="danger" size="small" variant="light">{{item.tag}}</t-tag>
+          </view>
+          <view class="product-footer">
+            <view class="add-btn" 
+              wx:if="{{item.stock > 0}}"
+              catchtap="addToCart" 
+              data-id="{{item.id}}"
+            >
+              <t-icon name="add" size="16px" color="#fff" />
+            </view>
+            <view wx:else class="add-btn disabled">
+              <t-icon name="add" size="16px" color="#ccc" />
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+    </scroll-view>
+  </view>
+</view>

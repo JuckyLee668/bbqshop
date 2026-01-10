@@ -1,0 +1,130 @@
+<scroll-view class="detail-container" scroll-y>
+  <!-- 商品图片轮播 -->
+  <view class="product-swiper">
+    <swiper 
+      class="product-swiper-container"
+      current="{{swiperCurrent}}" 
+      bindchange="onSwiperChange"
+      indicator-dots="{{productImages.length > 1}}"
+      indicator-color="rgba(255, 255, 255, 0.5)"
+      indicator-active-color="#fff"
+      autoplay="{{false}}"
+    >
+      <swiper-item wx:for="{{productImages}}" wx:key="index">
+        <image 
+          wx:if="{{item && item !== ''}}" 
+          src="{{item}}" 
+          class="swiper-image" 
+          mode="aspectFill"
+          binderror="onImageError"
+          data-index="{{index}}"
+        />
+        <view wx:else class="swiper-image placeholder-image">
+          <view class="placeholder-content">
+            <t-icon name="image" size="80px" color="#fff" />
+            <text class="placeholder-text">暂无图片</text>
+          </view>
+        </view>
+      </swiper-item>
+    </swiper>
+    <view class="product-tag" wx:if="{{product && product.tag}}">
+      <t-tag theme="danger" size="small">{{product.tag}}</t-tag>
+    </view>
+  </view>
+
+  <!-- 商品信息 -->
+  <view class="product-info-section">
+    <view class="product-header">
+      <view class="product-title-wrapper">
+        <text class="product-title">{{product.name}}</text>
+        <text class="product-subtitle">{{product.desc}}</text>
+      </view>
+      <t-tag theme="{{product.stock > 0 ? 'success' : 'default'}}" size="small">{{product.stock > 0 ? '有货' : '缺货'}}</t-tag>
+    </view>
+    <view class="product-price-section">
+      <text class="price-current">¥{{totalPrice}}</text>
+      <text wx:if="{{product.oldPrice && quantity === 1}}" class="price-old">¥{{product.oldPrice}}</text>
+      <t-tag wx:if="{{product.tag}}" theme="danger" size="small" variant="light">{{product.tag}}</t-tag>
+    </view>
+  </view>
+
+  <!-- 商品描述 -->
+  <view class="section" wx:if="{{product.desc}}">
+    <text class="section-title">商品描述</text>
+    <text class="section-content">{{product.desc}}</text>
+  </view>
+
+  <!-- 口味选择 -->
+  <view class="section">
+    <text class="section-title">选择口味</text>
+    <t-radio-group value="{{selectedFlavor}}" bind:change="onFlavorChange">
+      <view class="option-grid">
+        <view class="option-item" wx:for="{{flavors}}" wx:key="value">
+          <t-radio value="{{item.value}}" label="{{item.label}}"></t-radio>
+        </view>
+      </view>
+    </t-radio-group>
+  </view>
+
+  <!-- 辣度选择 -->
+  <view class="section">
+    <text class="section-title">选择辣度</text>
+    <t-radio-group value="{{selectedSpicy}}" bind:change="onSpicyChange">
+      <view class="option-row">
+        <view class="option-item" wx:for="{{spicyLevels}}" wx:key="value">
+          <t-radio value="{{item.value}}" label="{{item.label}}"></t-radio>
+        </view>
+      </view>
+    </t-radio-group>
+  </view>
+
+  <!-- 加料选择 -->
+  <view class="section" wx:if="{{enableAddons}}">
+    <text class="section-title">加料选择（可选）</text>
+    <view class="addon-list">
+      <view 
+        class="addon-item {{item.selected ? 'selected' : ''}}"
+        wx:for="{{addons}}"
+        wx:key="id"
+        bindtap="toggleAddon"
+        data-id="{{item.id}}"
+      >
+        <view class="addon-image-wrapper">
+          <image 
+            wx:if="{{item.image && item.image !== ''}}" 
+            src="{{item.image}}" 
+            class="addon-image" 
+            mode="aspectFill"
+            binderror="onAddonImageError"
+            data-id="{{item.id}}"
+          />
+          <view wx:else class="addon-image" style="background: {{item.gradient}}"></view>
+        </view>
+        <view class="addon-info">
+          <text class="addon-name">{{item.name}}</text>
+          <text class="addon-price">+¥{{item.price}}</text>
+        </view>
+        <t-checkbox value="{{item.selected}}" />
+      </view>
+    </view>
+  </view>
+
+  <!-- 数量选择 -->
+  <view class="section">
+    <text class="section-title">选择数量</text>
+    <view class="quantity-wrapper">
+      <t-stepper 
+        value="{{quantity}}" 
+        min="{{1}}" 
+        max="{{99}}"
+        bind:change="onQuantityChange"
+      />
+    </view>
+  </view>
+</scroll-view>
+
+<!-- 底部操作栏 -->
+<view class="bottom-bar">
+  <t-button theme="default" variant="outline" size="large" bindtap="addToCart">加入购物车</t-button>
+  <t-button theme="primary" size="large" bindtap="buyNow">立即购买</t-button>
+</view>

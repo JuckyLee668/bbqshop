@@ -1,0 +1,81 @@
+<view class="review-container">
+  <view class="review-header">
+    <text class="review-title">评价订单</text>
+  </view>
+
+  <!-- 订单信息 -->
+  <view class="order-info" wx:if="{{order}}">
+    <text class="order-info-title">订单号：{{order.orderNo}}</text>
+    <view class="order-products">
+      <view 
+        class="order-product-item"
+        wx:for="{{order.items}}"
+        wx:key="index"
+      >
+        <text class="product-name">{{item.productName}} × {{item.quantity}}</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 评分 -->
+  <view class="rating-section">
+    <text class="section-title">评分</text>
+    <t-rate 
+      value="{{rating}}" 
+      bind:change="onRatingChange"
+      size="48rpx"
+      color="#FF6B35"
+    />
+  </view>
+
+  <!-- 评价内容 -->
+  <view class="content-section">
+    <text class="section-title">评价内容</text>
+    <textarea 
+      class="content-input"
+      placeholder="请输入您的评价（选填）"
+      value="{{content}}"
+      bindinput="onContentInput"
+      maxlength="500"
+      show-confirm-bar="{{false}}"
+    />
+    <text class="char-count">{{content.length}}/500</text>
+  </view>
+
+  <!-- 上传图片 -->
+  <view class="images-section">
+    <text class="section-title">上传图片（最多3张）</text>
+    <view class="images-list">
+      <view 
+        class="image-item"
+        wx:for="{{images}}"
+        wx:key="index"
+      >
+        <image src="{{item}}" mode="aspectFill" />
+        <view class="image-remove" bindtap="removeImage" data-index="{{index}}">
+          <t-icon name="close" size="32rpx" color="#fff" />
+        </view>
+      </view>
+      <view 
+        class="image-upload-btn"
+        wx:if="{{images.length < 3}}"
+        bindtap="chooseImages"
+      >
+        <t-icon name="add" size="48rpx" color="#999" />
+        <text>添加图片</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提交按钮 -->
+  <view class="submit-section">
+    <t-button 
+      theme="primary" 
+      size="large"
+      bindtap="submitReview"
+      disabled="{{hasReviewed}}"
+    >
+      {{hasReviewed ? '已评价' : '提交评价'}}
+    </t-button>
+  </view>
+</view>

@@ -1,0 +1,172 @@
+<view class="merchant-container">
+  <!-- 顶部导航栏 -->
+  <view class="merchant-header">
+    <text class="header-title">商家管理</text>
+    <view class="header-actions">
+      <t-icon name="notification" size="20px" color="#666" />
+      <t-icon name="setting" size="20px" color="#666" />
+    </view>
+  </view>
+
+  <scroll-view class="merchant-scroll" scroll-y>
+    <!-- 数据统计卡片 -->
+    <view class="stats-section">
+      <view class="stats-grid">
+        <view class="stat-card orange">
+          <text class="stat-label">今日订单</text>
+          <text class="stat-value">28</text>
+          <text class="stat-trend">较昨日 +12%</text>
+        </view>
+        <view class="stat-card blue">
+          <text class="stat-label">今日营业额</text>
+          <text class="stat-value">¥856</text>
+          <text class="stat-trend">较昨日 +8%</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 快捷操作 -->
+    <view class="quick-actions">
+      <text class="section-title">快捷操作</text>
+      <view class="actions-grid">
+        <view class="action-item" bindtap="addProduct">
+          <view class="action-icon orange">
+            <t-icon name="add" size="24px" color="#FF6B35" />
+          </view>
+          <text class="action-label">新增商品</text>
+        </view>
+        <view class="action-item" bindtap="manageCategory">
+          <view class="action-icon blue">
+            <t-icon name="menu" size="24px" color="#1890ff" />
+          </view>
+          <text class="action-label">分类管理</text>
+        </view>
+        <view class="action-item" bindtap="manageOrders">
+          <view class="action-icon green">
+            <t-icon name="file-list" size="24px" color="#52c41a" />
+          </view>
+          <text class="action-label">订单管理</text>
+        </view>
+        <view class="action-item" bindtap="viewStats">
+          <view class="action-icon purple">
+            <t-icon name="chart-bar" size="24px" color="#722ed1" />
+          </view>
+          <text class="action-label">数据统计</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 新订单提醒 -->
+    <view class="new-order-alert">
+      <view class="alert-header">
+        <view class="alert-title">
+          <view class="alert-dot"></view>
+          <text>新订单提醒</text>
+        </view>
+        <t-badge count="3" />
+      </view>
+      <text class="alert-desc">您有3个新订单待处理</text>
+      <t-button theme="danger" size="small" bindtap="viewNewOrders">立即查看</t-button>
+    </view>
+
+    <!-- 订单管理 -->
+    <view class="order-management">
+      <view class="section-header">
+        <text class="section-title">订单管理</text>
+        <text class="section-more" bindtap="viewAllOrders">查看全部 ></text>
+      </view>
+      <view class="order-list">
+        <view class="order-item">
+          <view class="order-header">
+            <text class="order-number">订单号：20240101123456</text>
+            <t-tag theme="warning" size="small">待制作</t-tag>
+          </view>
+          <text class="order-product">原味烤面筋 × 2</text>
+          <view class="order-footer">
+            <text class="order-info">到店自取 | 12:30</text>
+            <view class="order-actions">
+              <text class="order-price">¥10</text>
+              <t-button theme="primary" size="small" bindtap="acceptOrder">接单</t-button>
+            </view>
+          </view>
+        </view>
+        <view class="order-item">
+          <view class="order-header">
+            <text class="order-number">订单号：20240101123455</text>
+            <t-tag theme="primary" size="small">制作中</t-tag>
+          </view>
+          <text class="order-product">香辣烤面筋 × 1</text>
+          <view class="order-footer">
+            <text class="order-info">外卖配送 | 11:20</text>
+            <view class="order-actions">
+              <text class="order-price">¥5</text>
+              <t-button theme="success" size="small" bindtap="completeOrder">完成</t-button>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 商品管理 -->
+    <view class="product-management">
+      <view class="section-header">
+        <text class="section-title">商品管理</text>
+        <view class="add-product-btn" bindtap="addProduct">
+          <t-icon name="add" size="16px" color="#FF6B35" />
+          <text>新增商品</text>
+        </view>
+      </view>
+      <view class="product-list">
+        <view class="product-item">
+          <view class="product-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+          <view class="product-content">
+            <view class="product-header">
+              <text class="product-name">原味烤面筋</text>
+              <t-tag theme="success" size="small">上架</t-tag>
+            </view>
+            <text class="product-stock">库存：128</text>
+            <view class="product-footer">
+              <text class="product-price">¥5</text>
+              <view class="product-actions">
+                <text class="action-btn" bindtap="editProduct">编辑</text>
+                <text class="action-btn danger" bindtap="offlineProduct">下架</text>
+              </view>
+            </view>
+          </view>
+        </view>
+        <view class="product-item">
+          <view class="product-image" style="background: linear-gradient(135deg, #FCA5A5 0%, #EF4444 100%)"></view>
+          <view class="product-content">
+            <view class="product-header">
+              <text class="product-name">香辣烤面筋</text>
+              <t-tag theme="success" size="small">上架</t-tag>
+            </view>
+            <text class="product-stock">库存：95</text>
+            <view class="product-footer">
+              <text class="product-price">¥5</text>
+              <view class="product-actions">
+                <text class="action-btn" bindtap="editProduct">编辑</text>
+                <text class="action-btn danger" bindtap="offlineProduct">下架</text>
+              </view>
+            </view>
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 门店管理 -->
+    <view class="store-management">
+      <t-cell-group>
+        <t-cell title="门店名称" note="夜市烤面筋" />
+        <t-cell title="营业时间" note="09:00-23:00" />
+        <t-cell title="配送范围" note="3km" />
+        <t-cell title="营业状态" note="营业中">
+          <t-tag theme="success" size="small" slot="note">营业中</t-tag>
+        </t-cell>
+      </t-cell-group>
+      <view class="edit-store-btn">
+        <t-button theme="primary" variant="outline" size="large" bindtap="editStore">编辑门店信息</t-button>
+      </view>
+    </view>
+  </scroll-view>
+</view>

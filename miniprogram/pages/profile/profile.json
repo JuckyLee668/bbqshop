@@ -1,0 +1,10 @@
+{
+  "navigationBarTitleText": "个人中心",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-cell": "tdesign-miniprogram/cell/cell",
+    "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
+    "t-badge": "tdesign-miniprogram/badge/badge",
+    "t-tag": "tdesign-miniprogram/tag/tag"
+  }
+}

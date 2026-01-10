@@ -1,0 +1,172 @@
+.package-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  padding-bottom: 120rpx;
+}
+
+/* 套餐封面 */
+.package-cover {
+  position: relative;
+  background: #fff;
+  height: 640rpx;
+}
+
+.cover-image {
+  width: 100%;
+  height: 100%;
+}
+
+.package-tag {
+  position: absolute;
+  top: 24rpx;
+  right: 24rpx;
+}
+
+/* 套餐信息 */
+.package-info-section {
+  background: #fff;
+  padding: 32rpx;
+  margin-top: 16rpx;
+}
+
+.package-header {
+  margin-bottom: 24rpx;
+}
+
+.package-title-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.package-title {
+  display: block;
+  font-size: 40rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.package-desc {
+  display: block;
+  font-size: 28rpx;
+  color: #999;
+}
+
+.package-price-section {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.price-current {
+  font-size: 48rpx;
+  font-weight: bold;
+  color: #FF6B35;
+}
+
+.price-old {
+  font-size: 28rpx;
+  color: #999;
+  text-decoration: line-through;
+}
+
+/* 区块 */
+.section {
+  background: #fff;
+  padding: 32rpx;
+  margin-top: 16rpx;
+}
+
+.section-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 24rpx;
+}
+
+/* 商品列表 */
+.products-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24rpx;
+}
+
+.product-item {
+  display: flex;
+  gap: 24rpx;
+  padding: 24rpx;
+  background: #f9f9f9;
+  border-radius: 16rpx;
+}
+
+.product-image-wrapper {
+  width: 160rpx;
+  height: 160rpx;
+  flex-shrink: 0;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 12rpx;
+}
+
+.product-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8rpx;
+}
+
+.product-header-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.product-name {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #333;
+}
+
+.product-quantity {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.product-desc {
+  font-size: 24rpx;
+  color: #999;
+}
+
+.product-footer-info {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+.product-price {
+  font-size: 28rpx;
+  font-weight: 600;
+  color: #FF6B35;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1rpx solid #f0f0f0;
+  padding: 24rpx 32rpx;
+  display: flex;
+  gap: 24rpx;
+  z-index: 100;
+}
+
+.bottom-bar t-button {
+  flex: 1;
+}

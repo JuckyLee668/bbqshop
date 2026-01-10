@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>商品详情 - 手工烤面筋</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- 顶部导航栏 -->
+    <div class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="px-4 py-3 flex items-center justify-between">
+            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+            </svg>
+            <div class="flex items-center space-x-4">
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                </svg>
+                <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- 商品图片轮播 -->
+    <div class="relative h-80 bg-gradient-to-br from-orange-400 to-orange-600">
+        <div class="absolute top-4 right-4 bg-red-500 text-white text-xs px-3 py-1 rounded-full">
+            限时特价
+        </div>
+        <div class="absolute bottom-4 left-4 right-4 flex justify-center space-x-2">
+            <div class="w-2 h-2 bg-white rounded-full"></div>
+            <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+            <div class="w-2 h-2 bg-white/50 rounded-full"></div>
+        </div>
+    </div>
+
+    <!-- 商品信息 -->
+    <div class="bg-white px-4 py-4">
+        <div class="flex items-start justify-between mb-2">
+            <div class="flex-1">
+                <h2 class="text-xl font-bold text-gray-800 mb-1">原味烤面筋</h2>
+                <p class="text-gray-500 text-sm">经典原味，Q弹有嚼劲，现烤现卖</p>
+            </div>
+            <span class="bg-green-100 text-green-600 text-xs px-2 py-1 rounded">有货</span>
+        </div>
+        <div class="flex items-center space-x-3 mt-3">
+            <span class="text-orange-500 font-bold text-2xl">¥5</span>
+            <span class="text-gray-400 text-sm line-through">¥6</span>
+            <span class="bg-red-50 text-red-500 text-xs px-2 py-1 rounded">限时特价</span>
+        </div>
+    </div>
+
+    <!-- 商品描述 -->
+    <div class="bg-white mt-2 px-4 py-4">
+        <h3 class="font-semibold text-gray-800 mb-2">商品描述</h3>
+        <p class="text-gray-600 text-sm leading-relaxed">
+            精选优质面筋，采用传统工艺制作，口感Q弹有嚼劲。现烤现卖，保证新鲜。原味烤制，保留面筋本身的香味，适合所有人群。
+        </p>
+    </div>
+
+    <!-- 口味选择 -->
+    <div class="bg-white mt-2 px-4 py-4">
+        <h3 class="font-semibold text-gray-800 mb-3">选择口味</h3>
+        <div class="grid grid-cols-3 gap-3">
+            <button class="border-2 border-orange-500 bg-orange-50 text-orange-500 py-2 rounded-lg text-sm font-medium">
+                原味
+            </button>
+            <button class="border-2 border-gray-200 bg-white text-gray-700 py-2 rounded-lg text-sm">
+                香辣
+            </button>
+            <button class="border-2 border-gray-200 bg-white text-gray-700 py-2 rounded-lg text-sm">
+                孜然
+            </button>
+        </div>
+    </div>
+
+    <!-- 辣度选择 -->
+    <div class="bg-white mt-2 px-4 py-4">
+        <h3 class="font-semibold text-gray-800 mb-3">选择辣度</h3>
+        <div class="flex space-x-3">
+            <button class="border-2 border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-lg text-sm flex-1">
+                不辣
+            </button>
+            <button class="border-2 border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-lg text-sm flex-1">
+                微辣
+            </button>
+            <button class="border-2 border-orange-500 bg-orange-50 text-orange-500 px-4 py-2 rounded-lg text-sm flex-1">
+                中辣
+            </button>
+            <button class="border-2 border-gray-200 bg-white text-gray-700 px-4 py-2 rounded-lg text-sm flex-1">
+                重辣
+            </button>
+        </div>
+    </div>
+
+    <!-- 加料选择 -->
+    <div class="bg-white mt-2 px-4 py-4">
+        <h3 class="font-semibold text-gray-800 mb-3">加料选择（可选）</h3>
+        <div class="space-y-3">
+            <div class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-lg"></div>
+                    <div>
+                        <h4 class="font-medium text-gray-800 text-sm">加香菜</h4>
+                        <p class="text-gray-500 text-xs">+¥1</p>
+                    </div>
+                </div>
+                <button class="border-2 border-gray-300 rounded-full w-6 h-6 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center justify-between p-3 border-2 border-orange-500 bg-orange-50 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-green-300 to-green-500 rounded-lg"></div>
+                    <div>
+                        <h4 class="font-medium text-gray-800 text-sm">加葱花</h4>
+                        <p class="text-gray-500 text-xs">+¥1</p>
+                    </div>
+                </div>
+                <button class="border-2 border-orange-500 bg-orange-500 rounded-full w-6 h-6 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </button>
+            </div>
+            <div class="flex items-center justify-between p-3 border-2 border-gray-200 rounded-lg">
+                <div class="flex items-center space-x-3">
+                    <div class="w-12 h-12 bg-gradient-to-br from-red-300 to-red-500 rounded-lg"></div>
+                    <div>
+                        <h4 class="font-medium text-gray-800 text-sm">加花生碎</h4>
+                        <p class="text-gray-500 text-xs">+¥2</p>
+                    </div>
+                </div>
+                <button class="border-2 border-gray-300 rounded-full w-6 h-6 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 数量选择 -->
+    <div class="bg-white mt-2 px-4 py-4">
+        <h3 class="font-semibold text-gray-800 mb-3">选择数量</h3>
+        <div class="flex items-center space-x-4">
+            <button class="border-2 border-gray-300 rounded-full w-10 h-10 flex items-center justify-center text-gray-600">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
+                </svg>
+            </button>
+            <span class="text-xl font-semibold text-gray-800 w-12 text-center">2</span>
+            <button class="border-2 border-orange-500 bg-orange-500 rounded-full w-10 h-10 flex items-center justify-center text-white">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- 底部操作栏 -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 px-4 py-3">
+        <div class="flex items-center space-x-3">
+            <button class="flex-1 bg-gray-100 text-gray-700 py-3 rounded-lg font-medium">
+                加入购物车
+            </button>
+            <button class="flex-1 bg-orange-500 text-white py-3 rounded-lg font-medium">
+                立即购买
+            </button>
+        </div>
+    </div>
+</body>
+</html>

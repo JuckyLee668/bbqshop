@@ -1,0 +1,65 @@
+<scroll-view class="package-container" scroll-y>
+  <!-- 套餐封面图 -->
+  <view class="package-cover">
+    <image 
+      wx:if="{{packageInfo.coverImage}}" 
+      src="{{packageInfo.coverImage}}" 
+      class="cover-image" 
+      mode="aspectFill" 
+    />
+    <view wx:else class="cover-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+    <view class="package-tag">
+      <t-tag theme="danger" size="small">{{packageInfo.tag || '特价套餐'}}</t-tag>
+    </view>
+  </view>
+
+  <!-- 套餐信息 -->
+  <view class="package-info-section">
+    <view class="package-header">
+      <view class="package-title-wrapper">
+        <text class="package-title">{{packageInfo.name}}</text>
+        <text class="package-desc">{{packageInfo.desc}}</text>
+      </view>
+    </view>
+    <view class="package-price-section">
+      <text class="price-current">¥{{packageInfo.price}}</text>
+      <text wx:if="{{packageInfo.oldPrice}}" class="price-old">¥{{packageInfo.oldPrice}}</text>
+    </view>
+  </view>
+
+  <!-- 套餐包含商品 -->
+  <view class="section">
+    <text class="section-title">套餐包含</text>
+    <view class="products-list">
+      <view 
+        class="product-item"
+        wx:for="{{packageInfo.products}}"
+        wx:key="productId"
+        bindtap="goToProductDetail"
+        data-id="{{item.productId}}"
+      >
+        <view class="product-image-wrapper">
+          <image wx:if="{{item.image}}" src="{{item.image}}" class="product-image" mode="aspectFill" />
+          <view wx:else class="product-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+        </view>
+        <view class="product-info">
+          <view class="product-header-info">
+            <text class="product-name">{{item.productName}}</text>
+            <text class="product-quantity">×{{item.quantity}}</text>
+          </view>
+          <text class="product-desc">{{item.desc}}</text>
+          <view class="product-footer-info">
+            <text class="product-price">¥{{item.price}}</text>
+            <t-tag wx:if="{{item.tag}}" theme="danger" size="small" variant="light">{{item.tag}}</t-tag>
+          </view>
+        </view>
+      </view>
+    </view>
+  </view>
+</scroll-view>
+
+<!-- 底部操作栏 -->
+<view class="bottom-bar">
+  <t-button theme="default" variant="outline" size="large" bindtap="addToCart">加入购物车</t-button>
+  <t-button theme="primary" size="large" bindtap="buyNow">立即购买</t-button>
+</view>

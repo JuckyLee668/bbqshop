@@ -1,0 +1,160 @@
+.product-list-container {
+  background-color: #f5f5f5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.content-wrapper {
+  display: flex;
+  flex: 1;
+  height: calc(100vh - 100rpx);
+}
+
+/* 左侧分类列表 */
+.category-sidebar {
+  width: 200rpx;
+  background: #fff;
+  border-right: 1rpx solid #f0f0f0;
+  flex-shrink: 0;
+}
+
+.category-item {
+  padding: 32rpx 24rpx;
+  font-size: 28rpx;
+  color: #666;
+  text-align: center;
+  border-bottom: 1rpx solid #f5f5f5;
+  position: relative;
+}
+
+.category-item.active {
+  color: #FF6B35;
+  font-weight: 600;
+  background: #fff5f0;
+}
+
+.category-item.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 6rpx;
+  background: #FF6B35;
+}
+
+/* 右侧商品列表 */
+.product-scroll {
+  flex: 1;
+  height: 100%;
+}
+
+.product-list {
+  padding: 32rpx;
+}
+
+.product-item {
+  background: #fff;
+  border-radius: 24rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+  display: flex;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+}
+
+.product-image-wrapper {
+  width: 192rpx;
+  height: 192rpx;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.product-image {
+  width: 100%;
+  height: 100%;
+  border-radius: 16rpx;
+}
+
+.out-of-stock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.out-of-stock text {
+  background: #333;
+  color: #fff;
+  padding: 8rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 24rpx;
+}
+
+.product-content {
+  flex: 1;
+  padding: 24rpx;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.product-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 8rpx;
+}
+
+.product-name {
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+
+.product-desc {
+  font-size: 24rpx;
+  color: #999;
+  margin-bottom: 16rpx;
+}
+
+.product-price-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+  margin-bottom: 16rpx;
+}
+
+.product-price {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #FF6B35;
+}
+
+.product-old-price {
+  font-size: 24rpx;
+  color: #999;
+  text-decoration: line-through;
+}
+
+.product-footer {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.add-btn {
+  width: 56rpx;
+  height: 56rpx;
+  background: #FF6B35;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.add-btn.disabled {
+  background: #f0f0f0;
+}

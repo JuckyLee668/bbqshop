@@ -1,0 +1,11 @@
+{
+  "navigationBarTitleText": "商家管理",
+  "usingComponents": {
+    "t-icon": "tdesign-miniprogram/icon/icon",
+    "t-tag": "tdesign-miniprogram/tag/tag",
+    "t-button": "tdesign-miniprogram/button/button",
+    "t-cell": "tdesign-miniprogram/cell/cell",
+    "t-cell-group": "tdesign-miniprogram/cell-group/cell-group",
+    "t-badge": "tdesign-miniprogram/badge/badge"
+  }
+}

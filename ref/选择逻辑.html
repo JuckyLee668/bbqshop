@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>手工烤面筋 - 购物车（带交互）</title>
+  <style>
+    /* ===== 保留之前的 CSS 样式 ===== */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+      padding-bottom: 60px; /* 避免被底部导航遮挡 */
+    }
+
+    .header {
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      background-color: white;
+      border-bottom: 1px solid #e5e5e5;
+      position: sticky;
+      top: 0;
+      z-index: 90;
+    }
+
+    .header h1 {
+      font-size: 18px;
+      font-weight: normal;
+    }
+
+    .clear-btn {
+      font-size: 14px;
+      color: #999;
+      text-decoration: none;
+    }
+
+    .cart-item {
+      display: flex;
+      padding: 16px;
+      background-color: white;
+      margin: 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    }
+
+    .checkbox {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #ccc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 12px;
+      cursor: pointer;
+    }
+
+    .checkbox.checked {
+      background-color: #1890ff;
+      border-color: #1890ff;
+      color: white;
+    }
+
+    .checkbox.checked::after {
+      content: "✓";
+      font-size: 14px;
+      font-weight: bold;
+    }
+
+    .item-image {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .item-info {
+      flex: 1;
+      margin-left: 12px;
+    }
+
+    .item-title {
+      font-size: 16px;
+      color: #333;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .item-desc {
+      font-size: 12px;
+      color: #666;
+      margin-top: 2px;
+    }
+
+    .item-price {
+      font-size: 18px;
+      color: #ff4d4f;
+      font-weight: bold;
+      margin-top: 6px;
+    }
+
+    .count-control {
+      display: flex;
+      align-items: center;
+      margin-top: 4px;
+    }
+
+    .count-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 50%;
+      font-size: 14px;
+      cursor: pointer;
+    }
+
+    .count {
+      width: 36px;
+      text-align: center;
+      font-size: 14px;
+      margin: 0 8px;
+    }
+
+    .delete-btn {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #999;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .delivery-options {
+      padding: 16px;
+      background-color: white;
+      margin: 16px;
+      border-radius: 12px;
+    }
+
+    .delivery-title {
+      font-size: 14px;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .delivery-option {
+      display: inline-block;
+      padding: 12px 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      font-size: 14px;
+      cursor: pointer;
+      margin-right: 12px;
+      transition: all 0.2s;
+    }
+
+    .delivery-option.selected {
+      border-color: #ff4d4f;
+      background-color: #fff7f7;
+      color: #ff4d4f;
+    }
+
+    .footer {
+      position: fixed;
+      bottom: 50px; /* 避开导航栏 */
+      left: 0;
+      right: 0;
+      background-color: white;
+      padding: 12px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid #e5e5e5;
+      z-index: 100;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+    }
+
+    .footer-checkbox {
+      width: 18px;
+      height: 18px;
+      border: 1px solid #ccc;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+      cursor: pointer;
+    }
+
+    .footer-checkbox.checked {
+      background-color: #1890ff;
+      border-color: #1890ff;
+      color: white;
+    }
+
+    .footer-checkbox.checked::after {
+      content: "✓";
+      font-size: 12px;
+      font-weight: bold;
+    }
+
+    .footer-text {
+      font-size: 14px;
+      color: #333;
+    }
+
+    .total-price {
+      font-size: 18px;
+      color: #ff4d4f;
+      font-weight: bold;
+    }
+
+    .checkout-btn {
+      width: 200px;
+      height: 40px;
+      background-color: #1890ff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .nav-bar {
+      display: flex;
+      justify-content: space-around;
+      background-color: #f5f5f5;
+      padding: 8px 0;
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      border-top: 1px solid #ddd;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #999;
+      font-size: 12px;
+    }
+
+    .nav-item.active {
+      color: #ff4d4f;
+    }
+
+    .nav-icon {
+      font-size: 20px;
+      margin-bottom: 4px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 头部 -->
+  <div class="header">
+    <h1>购物车</h1>
+    <a href="#" class="clear-btn" id="clearBtn">清空</a>
+  </div>
+
+  <!-- 商品列表容器 -->
+  <div id="cartList">
+    <!-- 商品项由 JS 动态生成 -->
+  </div>
+
+  <!-- 配送方式 -->
+  <div class="delivery-options">
+    <div class="delivery-title">配送方式</div>
+    <div class="delivery-option selected" data-type="pickup">
+      <div>📍 到店自取</div>
+    </div>
+    <div class="delivery-option" data-type="delivery">
+      <div>🚚 外卖配送</div>
+      <div style="font-size: 12px; color: #ff4d4f;">满20元免配送费</div>
+    </div>
+  </div>
+
+  <!-- 底部结算栏 -->
+  <div class="footer">
+    <div class="footer-left">
+      <div class="footer-checkbox" id="selectAll"></div>
+      <div class="footer-text">全选</div>
+    </div>
+    <div class="total-price" id="totalPrice">¥0.00</div>
+    <button class="checkout-btn" id="checkoutBtn">去结算</button>
+  </div>
+
+  <!-- 底部导航栏 -->
+  <div class="nav-bar">
+    <div class="nav-item">
+      <div class="nav-icon">🏠</div>
+      <div>首页</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">🧩</div>
+      <div>分类</div>
+    </div>
+    <div class="nav-item active">
+      <div class="nav-icon">🛒</div>
+      <div>购物车</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">📋</div>
+      <div>订单</div>
+    </div>
+    <div class="nav-item">
+      <div class="nav-icon">👤</div>
+      <div>我的</div>
+    </div>
+  </div>
+
+  <script>
+    // 模拟商品数据
+    const products = [
+      { id: 1, name: '套餐A - 3串面筋 + 1饮料', desc: '微辣 / 加香菜', price: 18, count: 1, checked: true },
+      { id: 2, name: '套餐B - 5串面筋 + 2豆皮', desc: '不辣 / 不加香菜', price: 28, count: 2, checked: false },
+      { id: 3, name: '单点：秘制烤面筋', desc: '特辣 / 加双酱', price: 6, count: 1, checked: true }
+    ];
+
+    let cartData = [...products]; // 可变数据
+
+    // 渲染购物车列表
+    function renderCart() {
+      const container = document.getElementById('cartList');
+      container.innerHTML = '';
+
+      cartData.forEach(item => {
+        const itemEl = document.createElement('div');
+        itemEl.className = 'cart-item';
+        itemEl.dataset.id = item.id;
+        itemEl.innerHTML = `
+          <div class="checkbox ${item.checked ? 'checked' : ''}" data-id="${item.id}"></div>
+          <img src="https://via.placeholder.com/60?text=🍜" alt="商品图" class="item-image" />
+          <div class="item-info">
+            <div class="item-title">${item.name}</div>
+            <div class="item-desc">${item.desc}</div>
+            <div class="item-price">¥${item.price.toFixed(2)}</div>
+            <div class="count-control">
+              <div class="count-btn minus" data-id="${item.id}">-</div>
+              <div class="count">${item.count}</div>
+              <div class="count-btn plus" data-id="${item.id}">+</div>
+            </div>
+          </div>
+          <div class="delete-btn" data-id="${item.id}">🗑</div>
+        `;
+        container.appendChild(itemEl);
+      });
+
+      updateFooter();
+    }
+
+    // 更新底部：全选状态、总价、结算按钮文本
+    function updateFooter() {
+      const allChecked = cartData.every(item => item.checked);
+      const anyChecked = cartData.some(item => item.checked);
+
+      document.getElementById('selectAll').classList.toggle('checked', allChecked && cartData.length > 0);
+
+      const total = cartData
+        .filter(item => item.checked)
+        .reduce((sum, item) => sum + item.price * item.count, 0);
+
+      document.getElementById('totalPrice').textContent = `¥${total.toFixed(2)}`;
+
+      const totalCount = cartData.filter(item => item.checked).reduce((sum, item) => sum + item.count, 0);
+      document.getElementById('checkoutBtn').textContent = totalCount > 0 ? `去结算(${totalCount})` : '去结算';
+    }
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      renderCart();
+
+      // 绑定事件委托（推荐方式）
+      document.body.addEventListener('click', (e) => {
+        const el = e.target;
+
+        // 单个商品勾选
+        if (el.classList.contains('checkbox')) {
+          const id = parseInt(el.dataset.id);
+          const item = cartData.find(i => i.id === id);
+          if (item) {
+            item.checked = !item.checked;
+            renderCart(); // 简单起见，重新渲染；也可局部更新
+          }
+        }
+
+        // 全选
+        if (el.id === 'selectAll') {
+          const allChecked = cartData.every(item => item.checked);
+          const newChecked = !allChecked;
+          cartData.forEach(item => item.checked = newChecked);
+          renderCart();
+        }
+
+        // 数量增减
+        if (el.classList.contains('plus') || el.classList.contains('minus')) {
+          const id = parseInt(el.dataset.id);
+          const item = cartData.find(i => i.id === id);
+          if (item) {
+            if (el.classList.contains('plus')) {
+              item.count++;
+            } else if (el.classList.contains('minus') && item.count > 1) {
+              item.count--;
+            }
+            renderCart();
+          }
+        }
+
+        // 删除
+        if (el.classList.contains('delete-btn')) {
+          const id = parseInt(el.dataset.id);
+          cartData = cartData.filter(i => i.id !== id);
+          renderCart();
+        }
+
+        // 清空购物车
+        if (el.id === 'clearBtn') {
+          e.preventDefault();
+          if (confirm('确定清空购物车？')) {
+            cartData = [];
+            renderCart();
+          }
+        }
+
+        // 配送方式切换
+        if (el.closest('.delivery-option')) {
+          document.querySelectorAll('.delivery-option').forEach(opt => opt.classList.remove('selected'));
+          el.closest('.delivery-option').classList.add('selected');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,54 @@
+<view class="pay-page">
+  <!-- 地址选择区域（仅外卖配送时显示） -->
+  <view wx:if="{{deliveryType === 'delivery'}}" class="address-card">
+    <view class="address-header" bindtap="selectAddress">
+      <view class="address-content">
+        <view wx:if="{{selectedAddress}}" class="address-info">
+          <view class="address-top">
+            <text class="address-name">{{selectedAddress.name}}</text>
+            <text class="address-phone">{{selectedAddress.phone}}</text>
+          </view>
+          <view class="address-text">{{selectedAddress.address}}{{selectedAddress.detail}}</view>
+        </view>
+        <view wx:else class="address-placeholder">
+          <text>请选择配送地址</text>
+        </view>
+      </view>
+      <t-icon name="chevron-right" size="20px" color="#999" />
+    </view>
+  </view>
+
+  <view class="pay-card">
+    <view class="pay-title">确认支付</view>
+    <view class="pay-amount">
+      <text class="label">应付金额</text>
+      <text class="price">¥{{totalPrice}}</text>
+    </view>
+    <view class="pay-details">
+      <view class="detail-item">
+        <text class="detail-label">商品金额</text>
+        <text class="detail-value">¥{{productTotal}}</text>
+      </view>
+      <view class="detail-item" wx:if="{{deliveryFee > 0}}">
+        <text class="detail-label">配送费</text>
+        <text class="detail-value">¥{{deliveryFee}}</text>
+      </view>
+      <view class="detail-item" wx:if="{{deliveryFee == 0 && deliveryType === 'delivery'}}">
+        <text class="detail-label">配送费</text>
+        <text class="detail-value free">免配送费</text>
+      </view>
+    </view>
+    <view class="pay-info">
+      <text class="info-text">订单号：{{orderNo}}</text>
+      <text class="info-text">配送方式：{{deliveryType === 'pickup' ? '到店自取' : '外卖配送'}}</text>
+      <text class="info-text">支付方式：微信支付（模拟）</text>
+    </view>
+  </view>
+
+  <view class="pay-footer">
+    <t-button theme="primary" size="large" bindtap="onMockPay">
+      立即支付
+    </t-button>
+  </view>
+</view>
+

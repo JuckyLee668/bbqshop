@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>收货地址</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 44px;
+      padding: 0 16px;
+      background-color: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .back-btn {
+      font-size: 18px;
+      color: #333;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .search-icon,
+    .manage-btn,
+    .add-btn {
+      font-size: 16px;
+      color: #333;
+    }
+
+    .add-btn {
+      color: #ff6b35;
+      font-weight: bold;
+    }
+
+    .address-list {
+      padding: 16px;
+      background-color: white;
+    }
+
+    .address-item {
+      padding: 16px 0;
+      border-bottom: 1px solid #e5e5e5;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .address-item:last-child {
+      border-bottom: none;
+    }
+
+    .region {
+      font-size: 12px;
+      color: #999;
+      margin-bottom: 4px;
+    }
+
+    .address-name {
+      font-size: 18px;
+      font-weight: 500;
+      margin-bottom: 4px;
+    }
+
+    .contact-info {
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      color: #333;
+    }
+
+    .contact-name {
+      margin-right: 8px;
+    }
+
+    .label {
+      font-size: 12px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin-left: 8px;
+    }
+
+    .default-label {
+      background-color: #fff7d6;
+      color: #f8a53c;
+    }
+
+    .company-label {
+      background-color: #f7e8e8;
+      color: #e95d5d;
+    }
+
+    .edit-icon {
+      width: 20px;
+      height: 20px;
+      margin-top: 8px;
+      opacity: 0.5;
+      fill: #999;
+    }
+
+    .footer {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 顶部导航 -->
+  <div class="header">
+    <div class="back-btn">←</div>
+    <div class="title">收货地址</div>
+    <div class="header-actions">
+      <span class="search-icon">🔍</span>
+      <span class="manage-btn">管理</span>
+      <span class="add-btn">新增地址</span>
+    </div>
+  </div>
+
+  <!-- 地址列表 -->
+  <div class="address-list">
+    <!-- 地址1 -->
+    <div class="address-item">
+      <div class="region">新疆维吾尔自治区 巴音郭楞蒙古自治州 且末县 兵团三十八团</div>
+      <div class="address-name">曙光小区</div>
+      <div class="contact-info">
+        <span class="contact-name">李军平 18066495991</span>
+        <span class="label default-label">默认</span>
+      </div>
+      <svg class="edit-icon" viewBox="0 0 24 24">
+        <path d="M11 15h2v2h-2v-2zm-4-4h2v2h-2v-2zm0-4h2v2h-2v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2z"/>
+      </svg>
+    </div>
+
+    <!-- 地址2 -->
+    <div class="address-item">
+      <div class="region">四川省 成都市 郫都区 犀浦街道</div>
+      <div class="address-name">犀安路999号西南交通大学犀浦区</div>
+      <div class="contact-info">
+        <span class="contact-name">李好 18066495991</span>
+      </div>
+      <svg class="edit-icon" viewBox="0 0 24 24">
+        <path d="M11 15h2v2h-2v-2zm-4-4h2v2h-2v-2zm0-4h2v2h-2v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2z"/>
+      </svg>
+    </div>
+
+    <!-- 地址3 -->
+    <div class="address-item">
+      <div class="region">新疆维吾尔自治区 阿克苏地区 拜城县 大桥乡</div>
+      <div class="address-name">大桥乡政府</div>
+      <div class="contact-info">
+        <span class="contact-name">本杰 18066495991</span>
+        <span class="label company-label">公司</span>
+      </div>
+      <svg class="edit-icon" viewBox="0 0 24 24">
+        <path d="M11 15h2v2h-2v-2zm-4-4h2v2h-2v-2zm0-4h2v2h-2v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2z"/>
+      </svg>
+    </div>
+
+    <!-- 地址4 -->
+    <div class="address-item">
+      <div class="region">湖北省 武汉市 蔡甸区 蔡甸街道</div>
+      <div class="address-name">长江大学武汉校区</div>
+      <div class="contact-info">
+        <span class="contact-name">李丽娟 15276260397</span>
+      </div>
+      <svg class="edit-icon" viewBox="0 0 24 24">
+        <path d="M11 15h2v2h-2v-2zm-4-4h2v2h-2v-2zm0-4h2v2h-2v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2z"/>
+      </svg>
+    </div>
+
+    <!-- 地址5 -->
+    <div class="address-item">
+      <div class="region">新疆维吾尔自治区 巴音郭楞蒙古自治州 库尔勒市 新城街道</div>
+      <div class="address-name">石化路华山中学侧门</div>
+      <div class="contact-info">
+        <span class="contact-name">李军平 18066495991</span>
+      </div>
+      <svg class="edit-icon" viewBox="0 0 24 24">
+        <path d="M11 15h2v2h-2v-2zm-4-4h2v2h-2v-2zm0-4h2v2h-2v-2zm4 0h2v2h-2v-2zm4 0h2v2h-2v-2zm-4 4h2v2h-2v-2z"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- 底部提示 -->
+  <div class="footer">到底啦</div>
+
+</body>
+</html>

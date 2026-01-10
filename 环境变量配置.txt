@@ -1,0 +1,194 @@
+========================================
+手工烤面筋项目 - 环境变量配置
+========================================
+
+一、后端服务环境变量配置 (server/.env)
+========================================
+
+# 服务器配置
+PORT=3000
+NODE_ENV=development
+
+# MongoDB配置
+MONGODB_URI=mongodb://localhost:27017/noodles_db
+
+# JWT配置
+JWT_SECRET=your_jwt_secret_key_here_change_this_to_a_strong_password
+JWT_EXPIRE=7d
+
+# 微信小程序配置
+WX_APPID=your_wechat_appid
+WX_SECRET=your_wechat_secret
+
+# 文件上传配置
+MAX_FILE_SIZE=5242880
+
+# CORS配置
+ALLOWED_ORIGINS=http://localhost:8080,http://localhost:5173,https://yourdomain.com
+
+
+========================================
+二、管理后台开发环境变量配置 (admin/.env.development)
+========================================
+
+VITE_API_BASE_URL=http://localhost:3000/v1
+
+
+========================================
+三、管理后台生产环境变量配置 (admin/.env.production)
+========================================
+
+VITE_API_BASE_URL=https://api.example.com/v1
+
+
+========================================
+配置说明
+========================================
+
+【后端服务配置说明】
+
+1. PORT
+   - 后端服务端口号
+   - 默认值：3000
+   - 示例：PORT=3000
+
+2. NODE_ENV
+   - 运行环境
+   - 可选值：development（开发）、production（生产）
+   - 示例：NODE_ENV=development
+
+3. MONGODB_URI
+   - MongoDB 数据库连接字符串
+   - 本地：mongodb://localhost:27017/noodles_db
+   - 远程：mongodb://username:password@host:port/database
+   - 示例：MONGODB_URI=mongodb://localhost:27017/noodles_db
+
+4. JWT_SECRET
+   - JWT Token 加密密钥
+   - ⚠️ 重要：必须使用强密码，建议至少32位随机字符串
+   - 生成方式：可以使用在线工具或 openssl rand -hex 32
+   - 示例：JWT_SECRET=abc123def456ghi789jkl012mno345pqr678stu901vwx234yz
+
+5. JWT_EXPIRE
+   - Token 过期时间
+   - 格式：数字+单位（如 7d、24h、30m）
+   - 默认值：7d（7天）
+   - 示例：JWT_EXPIRE=7d
+
+6. WX_APPID
+   - 微信小程序 AppID
+   - 在微信公众平台获取
+   - 示例：WX_APPID=wx1234567890abcdef
+
+7. WX_SECRET
+   - 微信小程序 AppSecret
+   - 在微信公众平台获取
+   - ⚠️ 注意保密，不要泄露
+   - 示例：WX_SECRET=abc123def456ghi789jkl012mno345pqr
+
+8. MAX_FILE_SIZE
+   - 最大文件上传大小（字节）
+   - 默认值：5242880（5MB）
+   - 示例：MAX_FILE_SIZE=5242880
+
+9. ALLOWED_ORIGINS
+   - 允许跨域访问的域名
+   - 多个域名用逗号分隔
+   - 开发环境：http://localhost:8080,http://localhost:5173
+   - 生产环境：https://yourdomain.com
+   - 示例：ALLOWED_ORIGINS=http://localhost:8080,https://admin.example.com
+
+
+【管理后台配置说明】
+
+1. VITE_API_BASE_URL
+   - API 基础地址
+   - 开发环境：http://localhost:3000/v1
+   - 生产环境：https://api.example.com/v1
+   - 示例：VITE_API_BASE_URL=http://localhost:3000/v1
+
+
+========================================
+使用步骤
+========================================
+
+【后端服务配置】
+
+1. 进入 server 目录
+   cd server
+
+2. 创建 .env 文件
+   - Windows: copy .env.example .env
+   - Linux/Mac: cp .env.example .env
+
+3. 编辑 .env 文件，修改以下关键配置：
+   - MONGODB_URI：确保 MongoDB 服务已启动
+   - JWT_SECRET：生成一个强密码
+   - WX_APPID：填写你的微信小程序 AppID
+   - WX_SECRET：填写你的微信小程序 AppSecret
+   - ALLOWED_ORIGINS：添加管理后台的访问地址
+
+4. 启动服务
+   npm run dev
+
+
+【管理后台配置】
+
+1. 进入 admin 目录
+   cd admin
+
+2. 编辑 .env.development 文件（开发环境）
+   - 修改 VITE_API_BASE_URL 为后端服务地址
+   - 如果后端运行在 localhost:3000，则无需修改
+
+3. 编辑 .env.production 文件（生产环境）
+   - 修改 VITE_API_BASE_URL 为生产环境的后端地址
+
+4. 启动开发服务器
+   npm run dev
+
+
+【小程序配置】
+
+1. 编辑 miniprogram/utils/api.js
+2. 修改 BASE_URL 常量：
+   const BASE_URL = 'http://localhost:3000/v1'; // 开发环境
+   // 或
+   const BASE_URL = 'https://api.example.com/v1'; // 生产环境
+
+
+========================================
+安全提示
+========================================
+
+⚠️ 重要安全提示：
+
+1. .env 文件包含敏感信息，不要提交到 Git 仓库
+2. JWT_SECRET 必须使用强密码，建议使用随机生成的32位以上字符串
+3. WX_SECRET 是微信小程序密钥，绝对不能泄露
+4. 生产环境必须使用 HTTPS
+5. 定期更换密钥和密码
+
+
+========================================
+快速配置示例
+========================================
+
+【开发环境快速配置】
+
+后端 (.env)：
+PORT=3000
+NODE_ENV=development
+MONGODB_URI=mongodb://localhost:27017/noodles_db
+JWT_SECRET=dev_secret_key_12345678901234567890
+JWT_EXPIRE=7d
+WX_APPID=your_appid_here
+WX_SECRET=your_secret_here
+MAX_FILE_SIZE=5242880
+ALLOWED_ORIGINS=http://localhost:8080,http://localhost:5173
+
+管理后台 (.env.development)：
+VITE_API_BASE_URL=http://localhost:3000/v1
+
+
+========================================
