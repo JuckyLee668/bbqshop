@@ -94,7 +94,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted, computed, watch } from 'vue'
+import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus'
 import { Plus } from '@element-plus/icons-vue'
@@ -105,20 +105,8 @@ const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
 const categories = ref([])
-
-// 根据 form.images 计算 imageList，确保 UI 显示同步
-const imageList = computed(() => {
-  return form.images.map((url: string) => ({
-    url: url.startsWith('http') ? url : (import.meta.env.VITE_API_BASE_URL?.replace('/v1', '') || '') + url,
-    response: { code: 200, data: { url } }
-  }))
-})
-
-// 确保上传 URL 包含正确的路径前缀
-const apiBaseUrl = import.meta.env.VITE_API_BASE_URL || '/v1'
-const uploadUrl = ref(apiBaseUrl.endsWith('/v1') 
-  ? `${apiBaseUrl}/upload/image` 
-  : `${apiBaseUrl}/v1/upload/image`)
+const imageList = ref([])
+const uploadUrl = ref(import.meta.env.VITE_API_BASE_URL + '/upload/image')
 const uploadHeaders = ref({
   Authorization: `Bearer ${localStorage.getItem('merchant_token')}`
 })
@@ -153,34 +141,19 @@ const loadCategories = async () => {
 }
 
 const handleImageSuccess = (response: any, file: any) => {
-  console.log('Upload success response:', response)
-  if (response && response.code === 200 && response.data) {
+  if (response.code === 200 && response.data) {
     const imageUrl = response.data.url || response.data
-    if (imageUrl && !form.images.includes(imageUrl)) {
-      form.images.push(imageUrl)
-      ElMessage.success('图片上传成功')
-    } else {
-      ElMessage.warning('图片已存在')
-    }
+    form.images.push(imageUrl)
+    ElMessage.success('图片上传成功')
   } else {
-    ElMessage.error(response?.message || '图片上传失败')
-    console.error('Upload failed:', response)
+    ElMessage.error(response.message || '图片上传失败')
   }
 }
 
 const handleImageRemove = (file: any) => {
-  // 从 file.response 或 file.url 中提取原始路径
-  let url = file.response?.data?.url || file.url
-  
-  // 如果 url 包含完整的 API 路径，提取相对路径
-  if (url && url.includes('/uploads/')) {
-    url = url.substring(url.indexOf('/uploads/'))
-  }
-  
+  const url = file.response?.data?.url || file.url
   if (url) {
-    const index = form.images.findIndex((img: string) => 
-      img === url || img.endsWith(url) || url.endsWith(img)
-    )
+    const index = form.images.indexOf(url)
     if (index > -1) {
       form.images.splice(index, 1)
     }

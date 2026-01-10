@@ -1,6 +1,6 @@
 // API 请求工具类
-const BASE_URL = 'http://localhost:3000/v1'; // 开发环境，生产环境需要修改
-//const BASE_URL = 'https://api.example.com/v1'; // 生产环境
+//const BASE_URL = 'http://localhost:3000/v1'; // 开发环境，生产环境需要修改
+const BASE_URL = 'https://rack.xi-han.top/v1'; // 生产环境
 // 请求封装
 function request(url, method = 'GET', data = {}) {
   return new Promise((resolve, reject) => {

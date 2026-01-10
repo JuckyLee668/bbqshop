@@ -1,0 +1,699 @@
+/**
+ * 完整数据库初始化脚本 - 创建所有模拟数据
+ * 使用方法：node scripts/init-full-data.js
+ * 
+ * 此脚本会创建：
+ * 1. 商户信息
+ * 2. 商品分类
+ * 3. 商品数据
+ * 4. 特价套餐
+ * 5. 优惠券
+ * 6. 测试用户
+ * 7. 用户地址
+ * 8. 购物车数据
+ * 9. 订单数据
+ * 10. 评价数据
+ */
+
+require('dotenv').config();
+const mongoose = require('mongoose');
+
+const Merchant = require('../models/Merchant');
+const Category = require('../models/Category');
+const Product = require('../models/Product');
+const SpecialPackage = require('../models/SpecialPackage');
+const Coupon = require('../models/Coupon');
+const User = require('../models/User');
+const Address = require('../models/Address');
+const Cart = require('../models/Cart');
+const Order = require('../models/Order');
+const OrderItem = require('../models/OrderItem');
+const Review = require('../models/Review');
+
+// 连接MongoDB
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noodles_db', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true
+})
+.then(async () => {
+  console.log('MongoDB连接成功');
+  console.log('开始初始化完整数据...\n');
+
+  try {
+    // 1. 创建商户
+    console.log('🏪 创建商户信息...');
+    const merchant = await createMerchant();
+    console.log(`✅ 商户创建成功: ${merchant.name}\n`);
+
+    // 2. 创建商品分类
+    console.log('📁 创建商品分类...');
+    const categories = await createCategories();
+    console.log(`✅ 已创建 ${categories.length} 个分类\n`);
+
+    // 3. 创建商品数据
+    console.log('🛍️  创建商品数据...');
+    const products = await createProducts(categories);
+    console.log(`✅ 已创建 ${products.length} 个商品\n`);
+
+    // 4. 创建特价套餐
+    console.log('🎁 创建特价套餐...');
+    const specialPackages = await createSpecialPackages(products);
+    console.log(`✅ 已创建 ${specialPackages.length} 个特价套餐\n`);
+
+    // 5. 创建优惠券
+    console.log('🎫 创建优惠券数据...');
+    const coupons = await createCoupons();
+    console.log(`✅ 已创建 ${coupons.length} 张优惠券\n`);
+
+    // 6. 创建测试用户
+    console.log('👤 创建测试用户...');
+    const users = await createUsers();
+    console.log(`✅ 已创建 ${users.length} 个用户\n`);
+
+    // 7. 创建用户地址
+    console.log('📍 创建用户地址...');
+    const addresses = await createAddresses(users);
+    console.log(`✅ 已创建 ${addresses.length} 个地址\n`);
+
+    // 8. 创建购物车数据
+    console.log('🛒 创建购物车数据...');
+    const cartItems = await createCartItems(users, products);
+    console.log(`✅ 已创建 ${cartItems.length} 个购物车项\n`);
+
+    // 9. 创建订单数据
+    console.log('📦 创建订单数据...');
+    const orders = await createOrders(users, products, addresses);
+    console.log(`✅ 已创建 ${orders.length} 个订单\n`);
+
+    // 10. 创建评价数据
+    console.log('⭐ 创建评价数据...');
+    const reviews = await createReviews(users, orders);
+    console.log(`✅ 已创建 ${reviews.length} 条评价\n`);
+
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ 完整数据初始化完成！');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('\n📊 数据统计:');
+    console.log(`  商户: 1`);
+    console.log(`  分类: ${categories.length}`);
+    console.log(`  商品: ${products.length}`);
+    console.log(`  特价套餐: ${specialPackages.length}`);
+    console.log(`  优惠券: ${coupons.length}`);
+    console.log(`  用户: ${users.length}`);
+    console.log(`  地址: ${addresses.length}`);
+    console.log(`  购物车项: ${cartItems.length}`);
+    console.log(`  订单: ${orders.length}`);
+    console.log(`  评价: ${reviews.length}`);
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    process.exit(0);
+  } catch (err) {
+    console.error('❌ 初始化失败:', err);
+    process.exit(1);
+  }
+})
+.catch(err => {
+  console.error('❌ MongoDB连接失败:', err);
+  process.exit(1);
+});
+
+// 创建商户
+async function createMerchant() {
+  let merchant = await Merchant.findOne();
+  if (!merchant) {
+    // 直接传入明文密码，Merchant 模型的 pre('save') hook 会自动加密
+    merchant = new Merchant({
+      username: 'admin',
+      password: 'admin123', // 明文密码，保存时会自动加密
+      name: '手工烤面筋',
+      storeInfo: {
+        name: '手工烤面筋',
+        address: '北京市朝阳区某某街道123号',
+        businessHours: '10:00-22:00',
+        deliveryRange: 5,
+        status: 'open',
+        latitude: 39.9042,
+        longitude: 116.4074,
+        phone: '13800138000',
+        freeDeliveryThreshold: 20, // 满20元免配送费
+        deliveryFee: 5, // 配送费5元
+        showDeliveryFee: true
+      }
+    });
+    await merchant.save();
+    console.log(`  ✓ 商户: ${merchant.name}`);
+    console.log(`  ✓ 用户名: admin`);
+    console.log(`  ✓ 密码: admin123`);
+  } else {
+    console.log(`  - 商户已存在: ${merchant.name}`);
+  }
+  return merchant;
+}
+
+// 创建商品分类
+async function createCategories() {
+  const categoryData = [
+    { name: '经典面筋', sort: 1 },
+    { name: '特色套餐', sort: 2 },
+    { name: '加料小食', sort: 3 },
+    { name: '饮品', sort: 4 }
+  ];
+
+  const categories = [];
+  for (const data of categoryData) {
+    let category = await Category.findOne({ name: data.name });
+    if (!category) {
+      category = new Category(data);
+      await category.save();
+      categories.push(category);
+      console.log(`  ✓ ${data.name}`);
+    } else {
+      console.log(`  - ${data.name} (已存在)`);
+      categories.push(category);
+    }
+  }
+  return categories;
+}
+
+// 创建商品数据
+async function createProducts(categories) {
+  const classicCategory = categories.find(c => c.name === '经典面筋');
+  const comboCategory = categories.find(c => c.name === '特色套餐');
+  const addonCategory = categories.find(c => c.name === '加料小食');
+  const drinkCategory = categories.find(c => c.name === '饮品');
+
+  const productData = [
+    {
+      name: '原味烤面筋',
+      desc: '经典原味，Q弹有嚼劲，现烤现卖',
+      price: 5,
+      oldPrice: 6,
+      stock: 100,
+      categoryId: classicCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/product-1.jpg'],
+      flavors: ['原味', '香辣', '孜然'],
+      spicyLevels: ['不辣', '微辣', '中辣', '特辣'],
+      addons: [
+        { name: '香菜', price: 1, image: '' },
+        { name: '花生碎', price: 2, image: '' }
+      ],
+      sort: 1,
+      tag: '限时特价',
+      isRecommend: true
+    },
+    {
+      name: '香辣烤面筋',
+      desc: '香辣可口，回味无穷',
+      price: 6,
+      oldPrice: 7,
+      stock: 80,
+      categoryId: classicCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/product-2.jpg'],
+      flavors: ['香辣', '孜然'],
+      spicyLevels: ['微辣', '中辣', '特辣'],
+      addons: [
+        { name: '香菜', price: 1, image: '' },
+        { name: '花生碎', price: 2, image: '' },
+        { name: '芝麻', price: 1, image: '' }
+      ],
+      sort: 2,
+      tag: '热销',
+      isRecommend: true
+    },
+    {
+      name: '孜然烤面筋',
+      desc: '孜然香味浓郁，口感丰富',
+      price: 6,
+      stock: 90,
+      categoryId: classicCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/product-3.jpg'],
+      flavors: ['孜然', '原味'],
+      spicyLevels: ['不辣', '微辣', '中辣'],
+      addons: [
+        { name: '香菜', price: 1, image: '' },
+        { name: '花生碎', price: 2, image: '' }
+      ],
+      sort: 3,
+      isRecommend: false
+    },
+    {
+      name: '套餐A - 3串面筋+1串豆皮',
+      desc: '超值套餐，3串面筋搭配1串豆皮',
+      price: 18,
+      oldPrice: 22,
+      stock: 50,
+      categoryId: comboCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/combo-1.jpg'],
+      flavors: ['原味', '香辣', '孜然'],
+      spicyLevels: ['不辣', '微辣', '中辣', '特辣'],
+      addons: [],
+      sort: 1,
+      tag: '限时特价',
+      isRecommend: true
+    },
+    {
+      name: '套餐B - 5串面筋+2串豆皮',
+      desc: '豪华套餐，5串面筋搭配2串豆皮',
+      price: 28,
+      oldPrice: 35,
+      stock: 30,
+      categoryId: comboCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/combo-2.jpg'],
+      flavors: ['原味', '香辣', '孜然'],
+      spicyLevels: ['不辣', '微辣', '中辣', '特辣'],
+      addons: [],
+      sort: 2,
+      tag: '热销',
+      isRecommend: true
+    },
+    {
+      name: '烤豆皮',
+      desc: '香脆可口，外酥内嫩',
+      price: 3,
+      stock: 120,
+      categoryId: addonCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/addon-1.jpg'],
+      flavors: ['原味', '香辣'],
+      spicyLevels: ['不辣', '微辣', '中辣'],
+      addons: [],
+      sort: 1
+    },
+    {
+      name: '烤金针菇',
+      desc: '鲜嫩多汁，营养丰富',
+      price: 4,
+      stock: 100,
+      categoryId: addonCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/addon-2.jpg'],
+      flavors: ['原味', '香辣'],
+      spicyLevels: ['不辣', '微辣', '中辣'],
+      addons: [],
+      sort: 2
+    },
+    {
+      name: '可乐',
+      desc: '冰镇可乐，清爽解腻',
+      price: 3,
+      stock: 200,
+      categoryId: drinkCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/drink-1.jpg'],
+      flavors: [],
+      spicyLevels: [],
+      addons: [],
+      sort: 1
+    },
+    {
+      name: '雪碧',
+      desc: '冰镇雪碧，清爽解腻',
+      price: 3,
+      stock: 200,
+      categoryId: drinkCategory?._id,
+      status: 'on_sale',
+      images: ['/uploads/drink-2.jpg'],
+      flavors: [],
+      spicyLevels: [],
+      addons: [],
+      sort: 2
+    }
+  ];
+
+  const products = [];
+  for (const data of productData) {
+    let product = await Product.findOne({ name: data.name });
+    if (!product) {
+      product = new Product(data);
+      await product.save();
+      products.push(product);
+      console.log(`  ✓ ${data.name} - ¥${data.price}`);
+    } else {
+      console.log(`  - ${data.name} (已存在)`);
+      products.push(product);
+    }
+  }
+  return products;
+}
+
+// 创建特价套餐
+async function createSpecialPackages(products) {
+  const classicProducts = products.filter(p => p.name.includes('面筋') && !p.name.includes('套餐'));
+  const comboProducts = products.filter(p => p.name.includes('套餐'));
+
+  const packageData = [
+    {
+      name: '周末特惠套餐',
+      desc: '周末专享，超值优惠',
+      price: 25,
+      oldPrice: 35,
+      status: 'active',
+      sort: 1,
+      products: [
+        { productId: classicProducts[0]?._id, quantity: 2 },
+        { productId: classicProducts[1]?._id, quantity: 2 },
+        { productId: products.find(p => p.name === '烤豆皮')?._id, quantity: 1 }
+      ]
+    },
+    {
+      name: '夜宵套餐',
+      desc: '夜宵必备，深夜食堂',
+      price: 30,
+      oldPrice: 40,
+      status: 'active',
+      sort: 2,
+      products: [
+        { productId: classicProducts[0]?._id, quantity: 3 },
+        { productId: classicProducts[1]?._id, quantity: 2 },
+        { productId: products.find(p => p.name === '烤金针菇')?._id, quantity: 2 }
+      ]
+    }
+  ];
+
+  const packages = [];
+  for (const data of packageData) {
+    let pkg = await SpecialPackage.findOne({ name: data.name });
+    if (!pkg) {
+      pkg = new SpecialPackage(data);
+      await pkg.save();
+      packages.push(pkg);
+      console.log(`  ✓ ${data.name} - ¥${data.price}`);
+    } else {
+      console.log(`  - ${data.name} (已存在)`);
+      packages.push(pkg);
+    }
+  }
+  return packages;
+}
+
+// 创建优惠券
+async function createCoupons() {
+  const couponData = [
+    {
+      name: '新用户专享',
+      desc: '首单立减5元',
+      type: 'discount',
+      value: 5,
+      minAmount: 0,
+      totalCount: 1000,
+      usedCount: 0,
+      expireTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+    },
+    {
+      name: '满30减10',
+      desc: '满30元立减10元',
+      type: 'discount',
+      value: 10,
+      minAmount: 30,
+      totalCount: 500,
+      usedCount: 0,
+      expireTime: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+    },
+    {
+      name: '满50减15',
+      desc: '满50元立减15元',
+      type: 'discount',
+      value: 15,
+      minAmount: 50,
+      totalCount: 300,
+      usedCount: 0,
+      expireTime: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)
+    }
+  ];
+
+  const coupons = [];
+  for (const data of couponData) {
+    let coupon = await Coupon.findOne({ name: data.name });
+    if (!coupon) {
+      coupon = new Coupon(data);
+      await coupon.save();
+      coupons.push(coupon);
+      console.log(`  ✓ ${data.name} - ${data.desc}`);
+    } else {
+      console.log(`  - ${data.name} (已存在)`);
+      coupons.push(coupon);
+    }
+  }
+  return coupons;
+}
+
+// 创建测试用户
+async function createUsers() {
+  const userData = [
+    {
+      openid: 'test_openid_001',
+      unionid: 'test_unionid_001',
+      nickName: '测试用户1',
+      avatarUrl: 'https://thirdwx.qlogo.cn/mmopen/vi_32/test1.png',
+      phone: '13800138001',
+      points: 50,
+      totalConsumption: 100
+    },
+    {
+      openid: 'test_openid_002',
+      unionid: 'test_unionid_002',
+      nickName: '测试用户2',
+      avatarUrl: 'https://thirdwx.qlogo.cn/mmopen/vi_32/test2.png',
+      phone: '13800138002',
+      points: 30,
+      totalConsumption: 60
+    },
+    {
+      openid: 'test_openid_003',
+      unionid: 'test_unionid_003',
+      nickName: '测试用户3',
+      avatarUrl: 'https://thirdwx.qlogo.cn/mmopen/vi_32/test3.png',
+      phone: '13800138003',
+      points: 20,
+      totalConsumption: 40
+    }
+  ];
+
+  const users = [];
+  for (const data of userData) {
+    let user = await User.findOne({ openid: data.openid });
+    if (!user) {
+      user = new User(data);
+      await user.save();
+      users.push(user);
+      console.log(`  ✓ ${data.nickName} (${data.phone})`);
+    } else {
+      console.log(`  - ${data.nickName} (已存在)`);
+      users.push(user);
+    }
+  }
+  return users;
+}
+
+// 创建用户地址
+async function createAddresses(users) {
+  const addresses = [];
+  
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    const addressData = [
+      {
+        userId: user._id,
+        name: `用户${i + 1}`,
+        phone: user.phone,
+        address: '北京市朝阳区某某街道',
+        detail: `${100 + i}号`,
+        latitude: 39.9042 + (i * 0.01),
+        longitude: 116.4074 + (i * 0.01),
+        isDefault: i === 0 // 第一个地址设为默认
+      },
+      {
+        userId: user._id,
+        name: `用户${i + 1}`,
+        phone: user.phone,
+        address: '北京市海淀区某某路',
+        detail: `${200 + i}号`,
+        latitude: 39.9542 + (i * 0.01),
+        longitude: 116.3074 + (i * 0.01),
+        isDefault: false
+      }
+    ];
+
+    for (const data of addressData) {
+      let address = await Address.findOne({ 
+        userId: data.userId, 
+        address: data.address,
+        detail: data.detail
+      });
+      if (!address) {
+        address = new Address(data);
+        await address.save();
+        addresses.push(address);
+        console.log(`  ✓ ${data.address}${data.detail} (${user.nickName})`);
+      } else {
+        console.log(`  - ${data.address}${data.detail} (已存在)`);
+        addresses.push(address);
+      }
+    }
+  }
+  return addresses;
+}
+
+// 创建购物车数据
+async function createCartItems(users, products) {
+  const cartItems = [];
+  
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    const product = products[i % products.length];
+    
+    const cartData = {
+      userId: user._id,
+      productId: product._id,
+      quantity: i + 1,
+      flavor: i % 2 === 0 ? '香辣' : '原味',
+      spicy: i % 3 === 0 ? '微辣' : i % 3 === 1 ? '中辣' : '不辣',
+      addons: i % 2 === 0 ? [
+        { id: '1', name: '香菜', price: 1 }
+      ] : [],
+      checked: true
+    };
+
+    let cart = await Cart.findOne({ 
+      userId: user._id, 
+      productId: product._id 
+    });
+    if (!cart) {
+      cart = new Cart(cartData);
+      await cart.save();
+      cartItems.push(cart);
+      console.log(`  ✓ ${user.nickName} - ${product.name} x${cartData.quantity}`);
+    } else {
+      console.log(`  - ${user.nickName} - ${product.name} (已存在)`);
+      cartItems.push(cart);
+    }
+  }
+  return cartItems;
+}
+
+// 创建订单数据
+async function createOrders(users, products, addresses) {
+  const orders = [];
+  const statuses = ['pending', 'paid', 'making', 'completed', 'cancelled'];
+  const deliveryTypes = ['pickup', 'delivery'];
+
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    const userAddresses = addresses.filter(a => a.userId.toString() === user._id.toString());
+    const defaultAddress = userAddresses.find(a => a.isDefault) || userAddresses[0];
+    
+    // 为每个用户创建2-3个订单
+    for (let j = 0; j < 2; j++) {
+      const orderNo = Order.generateOrderNo();
+      const status = statuses[i % statuses.length];
+      const deliveryType = deliveryTypes[i % deliveryTypes.length];
+      
+      // 选择商品
+      const selectedProducts = products.slice(i % products.length, (i % products.length) + 2);
+      let productTotal = 0;
+      selectedProducts.forEach(p => {
+        productTotal += p.price * (j + 1);
+      });
+
+      // 计算配送费
+      let deliveryFee = 0;
+      if (deliveryType === 'delivery') {
+        const merchant = await Merchant.findOne();
+        const freeThreshold = merchant?.storeInfo?.freeDeliveryThreshold || 20;
+        const fee = merchant?.storeInfo?.deliveryFee || 5;
+        if (productTotal < freeThreshold) {
+          deliveryFee = fee;
+        }
+      }
+
+      const totalPrice = productTotal + deliveryFee;
+
+      const orderData = {
+        orderNo,
+        userId: user._id,
+        totalPrice,
+        productTotal,
+        deliveryFee,
+        status,
+        deliveryType,
+        deliveryAddressId: deliveryType === 'delivery' ? defaultAddress?._id : null,
+        remark: j === 0 ? '不要香菜' : '尽快送达'
+      };
+
+      let order = await Order.findOne({ orderNo });
+      if (!order) {
+        order = new Order(orderData);
+        await order.save();
+
+        // 创建订单项
+        for (const product of selectedProducts) {
+          const orderItem = new OrderItem({
+            orderId: order._id,
+            productId: product._id,
+            productName: product.name,
+            price: product.price,
+            quantity: j + 1,
+            spec: `${product.flavors?.[0] || '原味'}-${product.spicyLevels?.[0] || '不辣'}`,
+            flavor: product.flavors?.[0] || '原味',
+            spicy: product.spicyLevels?.[0] || '不辣',
+            addons: []
+          });
+          await orderItem.save();
+        }
+
+        orders.push(order);
+        console.log(`  ✓ 订单 ${orderNo} - ${user.nickName} - ¥${totalPrice} - ${status}`);
+      } else {
+        console.log(`  - 订单 ${orderNo} (已存在)`);
+        orders.push(order);
+      }
+    }
+  }
+  return orders;
+}
+
+// 创建评价数据
+async function createReviews(users, orders) {
+  const reviews = [];
+  const completedOrders = orders.filter(o => o.status === 'completed');
+
+  for (let i = 0; i < Math.min(completedOrders.length, 5); i++) {
+    const order = completedOrders[i];
+    const orderItems = await OrderItem.find({ orderId: order._id });
+    if (orderItems.length === 0) continue;
+
+    const productId = orderItems[0].productId;
+    const ratings = [5, 5, 4, 5, 4];
+    const contents = [
+      '很好吃，下次还会再来！',
+      '味道不错，配送也很快',
+      '还可以，就是有点辣',
+      '非常满意，推荐！',
+      '不错，性价比很高'
+    ];
+
+    let review = await Review.findOne({ orderId: order._id });
+    if (!review) {
+      review = new Review({
+        orderId: order._id,
+        userId: order.userId,
+        productId: productId,
+        rating: ratings[i % ratings.length],
+        content: contents[i % contents.length],
+        images: []
+      });
+      await review.save();
+      reviews.push(review);
+      console.log(`  ✓ 评价 - 订单 ${order.orderNo} - ${ratings[i % ratings.length]}星`);
+    } else {
+      console.log(`  - 评价 (已存在)`);
+      reviews.push(review);
+    }
+  }
+  return reviews;
+}
