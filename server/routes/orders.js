@@ -14,7 +14,7 @@ router.use(auth);
 // 创建订单
 router.post('/', async (req, res) => {
   try {
-    const { cartItemIds, deliveryType, deliveryAddressId, remark, couponId } = req.body;
+    const { cartItemIds, deliveryType, deliveryAddressId, remark, couponId, productVoucherIds } = req.body;
 
     if (!cartItemIds || cartItemIds.length === 0) {
       return error(res, '请选择要购买的商品', 400);
@@ -59,8 +59,59 @@ router.post('/', async (req, res) => {
       }
     }
 
-    // 订单总价 = 商品总价 + 配送费
-    const totalPrice = productTotal + deliveryFee;
+    // 计算优惠券折扣
+    let couponDiscount = 0;
+    let finalProductTotal = productTotal;
+    
+    if (couponId) {
+      const UserCoupon = require('../models/UserCoupon');
+      const userCoupon = await UserCoupon.findOne({
+        _id: couponId,
+        userId: req.userId,
+        status: 'available'
+      }).populate('couponId');
+      
+      if (userCoupon && userCoupon.couponId) {
+        const coupon = userCoupon.couponId;
+        
+        // 检查是否过期
+        const now = new Date();
+        if (!coupon.expireTime || new Date(coupon.expireTime) >= now) {
+          // 检查是否满足最低消费
+          if (!coupon.minAmount || productTotal >= coupon.minAmount) {
+            if (coupon.type === 'discount') {
+              // 折扣券：计算折扣金额（原价 - 折扣后价格）
+              // 例如：9折券（value=90），折扣金额 = 原价 * (1 - 90/100) = 原价 * 0.1
+              couponDiscount = Math.round(productTotal * (1 - coupon.value / 100) * 100) / 100;
+            } else if (coupon.type === 'reduce') {
+              // 满减券：直接减金额
+              couponDiscount = coupon.value;
+            } else if (coupon.type === 'freeProduct' && coupon.productId) {
+              // 特定商品免单券：只减免一个商品的价格（一张券只能免一次）
+              // 从购物车商品中查找匹配的商品
+              for (const cartItem of cartItems) {
+                if (cartItem.productId && cartItem.productId._id && 
+                    cartItem.productId._id.toString() === coupon.productId.toString()) {
+                  // 只减免一个商品的价格，不是所有数量
+                  couponDiscount = cartItem.productId.price || 0;
+                  break; // 找到第一个匹配的商品后立即退出
+                }
+              }
+            }
+            
+            // 确保折扣不超过商品总价
+            couponDiscount = Math.min(couponDiscount, productTotal);
+            finalProductTotal = Math.max(0, productTotal - couponDiscount);
+            
+            // 标记优惠券为已使用（但先不更新，等支付成功后再更新）
+            // 这里先记录，支付成功后在回调中更新
+          }
+        }
+      }
+    }
+
+    // 订单总价 = 商品总价（优惠后） + 配送费
+    const totalPrice = finalProductTotal + deliveryFee;
 
     // 创建订单
     const order = new Order({
@@ -72,7 +123,9 @@ router.post('/', async (req, res) => {
       deliveryType: deliveryType || 'pickup',
       deliveryAddressId,
       remark,
-      couponId
+      couponId,
+      productVoucherIds: productVoucherIds || [], // 保存商品券ID
+      cartItemIds: cartItemIds // 保存购物车商品ID，用于支付成功后删除购物车
     });
 
     await order.save();
@@ -100,29 +153,65 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // 删除购物车商品
-    await Cart.deleteMany({ _id: { $in: cartItemIds } });
+    // 处理商品券：将商品券对应的商品添加到订单中
+    if (productVoucherIds && productVoucherIds.length > 0) {
+      const UserProductVoucher = require('../models/UserProductVoucher');
+      const ProductVoucher = require('../models/ProductVoucher');
+      const OrderItem = require('../models/OrderItem');
+      
+      for (const voucherId of productVoucherIds) {
+        const userVoucher = await UserProductVoucher.findOne({
+          _id: voucherId,
+          userId: req.userId,
+          status: 'available'
+        }).populate('productVoucherId');
+        
+        if (userVoucher && userVoucher.productVoucherId) {
+          const voucher = userVoucher.productVoucherId;
+          await voucher.populate('productId');
+          const product = voucher.productId;
+          
+          if (product) {
+            // 将商品券对应的商品添加到订单商品中（价格为0，因为是用积分兑换的）
+            const orderItem = new OrderItem({
+              orderId: order._id,
+              productId: product._id,
+              productName: product.name,
+              price: 0, // 商品券商品价格为0
+              quantity: voucher.quantity,
+              spec: `商品券：${voucher.name}`
+            });
+            await orderItem.save();
+            orderItems.push(orderItem);
+
+            // 减少商品库存
+            await Product.findByIdAndUpdate(product._id, {
+              $inc: { stock: -voucher.quantity }
+            });
+          }
+        }
+      }
+    }
+
+    // ⚠️ 重要：不在创建订单时删除购物车
+    // 只有在支付成功后才删除购物车，避免支付失败时购物车丢失
+    // 购物车删除逻辑已移至支付成功回调中（server/routes/payment.js）
 
     // 更新用户累计消费（订单创建时先不更新，等支付完成后再更新）
     // 这里先不更新，等订单支付完成后再更新
 
-    // 生成支付参数（这里需要集成微信支付）
-    const payParams = {
-      timeStamp: String(Math.floor(Date.now() / 1000)),
-      nonceStr: Math.random().toString(36).substr(2, 15),
-      package: 'prepay_id=xxx', // 需要调用微信支付接口获取
-      signType: 'RSA',
-      paySign: '签名' // 需要计算签名
-    };
+    // 注意：支付参数不再在这里生成，需要前端调用 /v1/payment/create 接口获取
+    // 这样可以确保支付参数是最新的，避免过期
 
     success(res, {
       orderId: order._id,
       orderNo: order.orderNo,
       totalPrice,
       productTotal,
+      finalProductTotal, // 优惠后的商品总价
+      couponDiscount, // 优惠金额
       deliveryFee,
-      deliveryType: order.deliveryType,
-      payParams
+      deliveryType: order.deliveryType
     });
   } catch (err) {
     error(res, err.message, 500);
@@ -224,6 +313,36 @@ router.get('/:id', async (req, res) => {
     const items = await OrderItem.find({ orderId: order._id })
       .populate('productId', 'images');
 
+    // 计算优惠券折扣（如果有）
+    let couponDiscount = 0;
+    let couponInfo = null;
+    if (order.couponId) {
+      const UserCoupon = require('../models/UserCoupon');
+      const userCoupon = await UserCoupon.findById(order.couponId)
+        .populate('couponId');
+      
+      if (userCoupon && userCoupon.couponId) {
+        const coupon = userCoupon.couponId;
+        const productTotal = order.productTotal || 0;
+        
+        if (coupon.type === 'discount') {
+          couponDiscount = Math.round(productTotal * (1 - coupon.value / 100) * 100) / 100;
+        } else if (coupon.type === 'reduce') {
+          couponDiscount = coupon.value;
+        }
+        couponDiscount = Math.min(couponDiscount, productTotal);
+        
+        couponInfo = {
+          id: coupon._id,
+          name: coupon.name,
+          type: coupon.type,
+          value: coupon.value,
+          desc: coupon.desc || '',
+          minAmount: coupon.minAmount || 0
+        };
+      }
+    }
+
     success(res, {
       id: order._id,
       orderNo: order.orderNo,
@@ -236,6 +355,12 @@ router.get('/:id', async (req, res) => {
         cancelled: '已取消'
       }[order.status] || '未知',
       totalPrice: order.totalPrice,
+      totalAmount: order.totalPrice, // 兼容字段
+      productAmount: order.productTotal || 0, // 商品金额（优惠前）
+      productTotal: order.productTotal || 0, // 兼容字段
+      deliveryFee: order.deliveryFee || 0, // 配送费
+      couponDiscount: couponDiscount, // 优惠券折扣金额
+      coupon: couponInfo, // 优惠券信息
       deliveryType: order.deliveryType,
       deliveryAddress: order.deliveryAddressId,
       remark: order.remark,
@@ -317,7 +442,99 @@ router.put('/:id/address', async (req, res) => {
   }
 });
 
-// 支付完成（模拟支付，实际应该由微信支付回调触发）
+// 更新订单优惠券
+router.put('/:id/coupon', async (req, res) => {
+  try {
+    const { couponId } = req.body;
+    const order = await Order.findOne({
+      _id: req.params.id,
+      userId: req.userId,
+      status: 'pending'
+    });
+
+    if (!order) {
+      return error(res, '订单不存在或无法修改', 404);
+    }
+
+    // 获取订单商品总价
+    const orderItems = await OrderItem.find({ orderId: order._id }).populate('productId');
+    let productTotal = 0;
+    for (const item of orderItems) {
+      productTotal += item.productId.price * item.quantity;
+    }
+
+    let couponDiscount = 0;
+    let finalProductTotal = productTotal;
+
+    if (couponId) {
+      const UserCoupon = require('../models/UserCoupon');
+      const userCoupon = await UserCoupon.findOne({
+        _id: couponId,
+        userId: req.userId,
+        status: 'available'
+      }).populate('couponId');
+      
+      if (userCoupon && userCoupon.couponId) {
+        const coupon = userCoupon.couponId;
+        
+        // 检查是否过期
+        const now = new Date();
+        if (!coupon.expireTime || new Date(coupon.expireTime) >= now) {
+          // 检查是否满足最低消费
+          if (!coupon.minAmount || productTotal >= coupon.minAmount) {
+            if (coupon.type === 'discount') {
+              // 折扣券：按百分比计算折扣金额
+              couponDiscount = Math.round(productTotal * (1 - coupon.value / 100) * 100) / 100;
+            } else if (coupon.type === 'reduce') {
+              // 满减券：直接减金额
+              couponDiscount = coupon.value;
+            } else if (coupon.type === 'freeProduct' && coupon.productId) {
+              // 特定商品免单券：只减免一个商品的价格（一张券只能免一次）
+              for (const orderItem of orderItems) {
+                if (orderItem.productId && orderItem.productId._id && 
+                    orderItem.productId._id.toString() === coupon.productId.toString()) {
+                  // 只减免一个商品的价格，不是所有数量
+                  couponDiscount = orderItem.productId.price || 0;
+                  break; // 找到第一个匹配的商品后立即退出
+                }
+              }
+            }
+            
+            // 确保折扣不超过商品总价
+            couponDiscount = Math.min(couponDiscount, productTotal);
+            finalProductTotal = Math.max(0, productTotal - couponDiscount);
+          } else {
+            return error(res, `该优惠券需要满¥${coupon.minAmount}才能使用`, 400);
+          }
+        } else {
+          return error(res, '优惠券已过期', 400);
+        }
+      } else {
+        return error(res, '优惠券不存在或已使用', 404);
+      }
+    }
+
+    // 更新订单
+    order.couponId = couponId || null;
+    const totalPrice = finalProductTotal + order.deliveryFee;
+    order.totalPrice = totalPrice;
+    order.productTotal = productTotal;
+    
+    await order.save();
+
+    success(res, {
+      totalPrice,
+      finalProductTotal,
+      couponDiscount,
+      productTotal
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 支付完成（已废弃：实际支付由微信支付回调触发，此接口保留用于兼容）
+// 注意：真实支付应使用 /v1/payment/create 接口
 router.put('/:id/pay', async (req, res) => {
   try {
     const order = await Order.findOne({

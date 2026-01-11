@@ -40,6 +40,26 @@ const merchantSchema = new mongoose.Schema({
     showDeliveryFee: {
       type: Boolean,
       default: true // 是否对外展示配送费信息
+    },
+    // 新用户专享优惠券配置
+    newUserCoupon: {
+      enabled: {
+        type: Boolean,
+        default: false // 是否启用新用户专享
+      },
+      couponId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Coupon',
+        default: null // 关联的优惠券ID
+      },
+      title: {
+        type: String,
+        default: '新用户专享' // 显示标题
+      },
+      desc: {
+        type: String,
+        default: '首单立减5元，满30减10' // 显示描述
+      }
     }
   }
 }, {

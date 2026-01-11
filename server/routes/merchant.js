@@ -8,6 +8,8 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Address = require('../models/Address');
 const Review = require('../models/Review');
+const Coupon = require('../models/Coupon');
+const PointsProduct = require('../models/PointsProduct');
 const { merchantAuth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
 
@@ -243,7 +245,7 @@ router.put('/orders/:id/complete', async (req, res) => {
 });
 
 // 获取商品列表（商家）
-router.get('/products', async (req, res) => {
+router.get('/products', merchantAuth, async (req, res) => {
   try {
     const { status, page = 1, pageSize = 10 } = req.query;
     
@@ -495,7 +497,13 @@ router.get('/store', async (req, res) => {
       phone: merchant.storeInfo?.phone || '',
       freeDeliveryThreshold: merchant.storeInfo?.freeDeliveryThreshold || 50,
       deliveryFee: merchant.storeInfo?.deliveryFee || 5,
-      showDeliveryFee: merchant.storeInfo?.showDeliveryFee !== false
+      showDeliveryFee: merchant.storeInfo?.showDeliveryFee !== false,
+      newUserCoupon: merchant.storeInfo?.newUserCoupon || {
+        enabled: false,
+        couponId: null,
+        title: '新用户专享',
+        desc: '首单立减5元，满30减10'
+      }
     });
   } catch (err) {
     error(res, err.message, 500);
@@ -510,6 +518,27 @@ router.put('/store', async (req, res) => {
       return error(res, '商家不存在', 404);
     }
 
+    // 处理新用户专享优惠券配置
+    let newUserCoupon = merchant.storeInfo?.newUserCoupon || {
+      enabled: false,
+      couponId: null,
+      title: '新用户专享',
+      desc: '首单立减5元，满30减10'
+    };
+    
+    if (req.body.newUserCoupon) {
+      newUserCoupon = {
+        enabled: req.body.newUserCoupon.enabled !== undefined 
+          ? req.body.newUserCoupon.enabled 
+          : newUserCoupon.enabled,
+        couponId: req.body.newUserCoupon.couponId !== undefined 
+          ? req.body.newUserCoupon.couponId 
+          : newUserCoupon.couponId,
+        title: req.body.newUserCoupon.title || newUserCoupon.title || '新用户专享',
+        desc: req.body.newUserCoupon.desc || newUserCoupon.desc || '首单立减5元，满30减10'
+      };
+    }
+
     merchant.storeInfo = {
       ...merchant.storeInfo,
       ...req.body,
@@ -522,7 +551,8 @@ router.put('/store', async (req, res) => {
         : (merchant.storeInfo?.deliveryFee || 5),
       showDeliveryFee: req.body.showDeliveryFee !== undefined 
         ? req.body.showDeliveryFee 
-        : (merchant.storeInfo?.showDeliveryFee !== false)
+        : (merchant.storeInfo?.showDeliveryFee !== false),
+      newUserCoupon
     };
 
     await merchant.save();
@@ -719,6 +749,444 @@ router.delete('/reviews/:id', async (req, res) => {
     if (!review) {
       return error(res, '评论不存在', 404);
     }
+
+    success(res);
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// ========== 优惠券管理 ==========
+
+// 获取优惠券列表
+router.get('/coupons', merchantAuth, async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(pageSize);
+
+    const coupons = await Coupon.find()
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(pageSize));
+
+    const total = await Coupon.countDocuments();
+
+    success(res, {
+      list: coupons.map(coupon => ({
+        id: coupon._id,
+        name: coupon.name,
+        desc: coupon.desc,
+        type: coupon.type,
+        value: coupon.value,
+        minAmount: coupon.minAmount,
+        expireTime: coupon.expireTime,
+        totalCount: coupon.totalCount,
+        usedCount: coupon.usedCount,
+        isDistributed: coupon.isDistributed || false,
+        createdAt: coupon.createdAt,
+        updatedAt: coupon.updatedAt
+      })),
+      total,
+      page: parseInt(page),
+      pageSize: parseInt(pageSize)
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 获取优惠券详情
+router.get('/coupons/:id', merchantAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || id === 'undefined') {
+      return error(res, '优惠券ID无效', 400);
+    }
+    
+    const coupon = await Coupon.findById(id);
+
+    if (!coupon) {
+      return error(res, '优惠券不存在', 404);
+    }
+
+    success(res, {
+      id: coupon._id,
+      name: coupon.name,
+      desc: coupon.desc,
+      type: coupon.type,
+      value: coupon.value,
+      minAmount: coupon.minAmount,
+      expireTime: coupon.expireTime,
+      totalCount: coupon.totalCount,
+      usedCount: coupon.usedCount,
+      isDistributed: coupon.isDistributed || false,
+      createdAt: coupon.createdAt,
+      updatedAt: coupon.updatedAt
+    });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return error(res, '优惠券ID格式错误', 400);
+    }
+    error(res, err.message, 500);
+  }
+});
+
+// 创建优惠券
+router.post('/coupons', merchantAuth, async (req, res) => {
+  try {
+    const { name, desc, type, value, minAmount, expireTime, totalCount, isDistributed } = req.body;
+
+    if (!name || !type || value === undefined) {
+      return error(res, '缺少必填字段', 400);
+    }
+
+    if (type !== 'discount' && type !== 'reduce') {
+      return error(res, '优惠券类型错误', 400);
+    }
+
+    if (type === 'discount' && (value < 1 || value > 100)) {
+      return error(res, '折扣值必须在1-100之间', 400);
+    }
+
+    if (type === 'reduce' && value <= 0) {
+      return error(res, '满减金额必须大于0', 400);
+    }
+
+    const coupon = new Coupon({
+      name,
+      desc,
+      type,
+      value,
+      minAmount: minAmount || 0,
+      expireTime: expireTime ? new Date(expireTime) : null,
+      totalCount: totalCount || -1, // -1表示无限制
+      usedCount: 0,
+      isDistributed: isDistributed !== undefined ? isDistributed : false
+    });
+
+    await coupon.save();
+
+    success(res, {
+      id: coupon._id,
+      name: coupon.name,
+      desc: coupon.desc,
+      type: coupon.type,
+      value: coupon.value,
+      minAmount: coupon.minAmount,
+      expireTime: coupon.expireTime,
+      totalCount: coupon.totalCount,
+      usedCount: coupon.usedCount,
+      isDistributed: coupon.isDistributed || false,
+      createdAt: coupon.createdAt,
+      updatedAt: coupon.updatedAt
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 更新优惠券
+router.put('/coupons/:id', merchantAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, desc, type, value, minAmount, expireTime, totalCount, isDistributed } = req.body;
+
+    const coupon = await Coupon.findById(id);
+
+    if (!coupon) {
+      return error(res, '优惠券不存在', 404);
+    }
+
+    if (name) coupon.name = name;
+    if (desc !== undefined) coupon.desc = desc;
+    if (type) coupon.type = type;
+    if (value !== undefined) coupon.value = value;
+    if (minAmount !== undefined) coupon.minAmount = minAmount;
+    if (expireTime !== undefined) {
+      coupon.expireTime = expireTime ? new Date(expireTime) : null;
+    }
+    if (totalCount !== undefined) {
+      // 如果设置总数量，不能小于已使用数量
+      if (totalCount !== -1 && totalCount < coupon.usedCount) {
+        return error(res, `总数量不能小于已使用数量(${coupon.usedCount})`, 400);
+      }
+      coupon.totalCount = totalCount;
+    }
+    if (isDistributed !== undefined) {
+      coupon.isDistributed = isDistributed;
+    }
+
+    await coupon.save();
+
+    success(res, {
+      id: coupon._id,
+      name: coupon.name,
+      desc: coupon.desc,
+      type: coupon.type,
+      value: coupon.value,
+      minAmount: coupon.minAmount,
+      expireTime: coupon.expireTime,
+      totalCount: coupon.totalCount,
+      usedCount: coupon.usedCount,
+      isDistributed: coupon.isDistributed || false,
+      createdAt: coupon.createdAt,
+      updatedAt: coupon.updatedAt
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 删除优惠券
+router.delete('/coupons/:id', merchantAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const coupon = await Coupon.findById(id);
+
+    if (!coupon) {
+      return error(res, '优惠券不存在', 404);
+    }
+
+    // 检查是否有用户已领取此优惠券
+    const UserCoupon = require('../models/UserCoupon');
+    const userCouponCount = await UserCoupon.countDocuments({ couponId: id });
+
+    if (userCouponCount > 0) {
+      return error(res, `该优惠券已被${userCouponCount}位用户领取，无法删除`, 400);
+    }
+
+    await Coupon.findByIdAndDelete(id);
+
+    success(res);
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// ========== 积分商城管理 ==========
+
+// 获取积分商品列表
+router.get('/points-products', merchantAuth, async (req, res) => {
+  try {
+    const { page = 1, pageSize = 10 } = req.query;
+    const skip = (parseInt(page) - 1) * parseInt(pageSize);
+
+    const products = await PointsProduct.find()
+      .sort({ sort: -1, createdAt: -1 })
+      .skip(skip)
+      .limit(parseInt(pageSize));
+
+    const total = await PointsProduct.countDocuments();
+
+    success(res, {
+      list: products.map(product => ({
+        id: product._id,
+        name: product.name,
+        desc: product.desc,
+        image: product.image,
+        points: product.points,
+        stock: product.stock,
+        usedCount: product.usedCount,
+        maxExchangePerUser: product.maxExchangePerUser !== undefined ? product.maxExchangePerUser : -1,
+        couponType: product.couponType || 'reduce',
+        couponValue: product.couponValue !== undefined ? product.couponValue : 5,
+        couponMinAmount: product.couponMinAmount !== undefined ? product.couponMinAmount : 0,
+        productId: product.productId || null,
+        status: product.status,
+        sort: product.sort,
+        createdAt: product.createdAt,
+        updatedAt: product.updatedAt
+      })),
+      total,
+      page: parseInt(page),
+      pageSize: parseInt(pageSize)
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 获取积分商品详情
+router.get('/points-products/:id', merchantAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    if (!id || id === 'undefined') {
+      return error(res, '商品ID无效', 400);
+    }
+    
+    const product = await PointsProduct.findById(id);
+
+    if (!product) {
+      return error(res, '商品不存在', 404);
+    }
+
+    success(res, {
+      id: product._id,
+      name: product.name,
+      desc: product.desc,
+      image: product.image,
+      points: product.points,
+      stock: product.stock,
+      usedCount: product.usedCount,
+      maxExchangePerUser: product.maxExchangePerUser !== undefined ? product.maxExchangePerUser : -1,
+      couponType: product.couponType || 'reduce',
+      couponValue: product.couponValue !== undefined ? product.couponValue : 5,
+      couponMinAmount: product.couponMinAmount !== undefined ? product.couponMinAmount : 0,
+      productId: product.productId || null,
+      status: product.status,
+      sort: product.sort,
+      createdAt: product.createdAt,
+      updatedAt: product.updatedAt
+    });
+  } catch (err) {
+    if (err.name === 'CastError') {
+      return error(res, '商品ID格式错误', 400);
+    }
+    error(res, err.message, 500);
+  }
+});
+
+// 创建积分商品
+router.post('/points-products', merchantAuth, async (req, res) => {
+  try {
+    const { name, desc, image, points, stock, maxExchangePerUser, status, sort } = req.body;
+
+    if (!name || points === undefined) {
+      return error(res, '缺少必填字段', 400);
+    }
+
+    if (points < 0) {
+      return error(res, '积分值必须大于等于0', 400);
+    }
+
+    const { couponType, couponValue, couponMinAmount, productId } = req.body;
+
+    const product = new PointsProduct({
+      name,
+      desc,
+      image,
+      points,
+      stock: stock !== undefined ? stock : -1,
+      maxExchangePerUser: maxExchangePerUser !== undefined ? maxExchangePerUser : -1,
+      couponType: couponType || 'reduce',
+      couponValue: couponValue !== undefined ? couponValue : 5,
+      couponMinAmount: couponMinAmount !== undefined ? couponMinAmount : 0,
+      productId: productId || undefined,
+      usedCount: 0,
+      status: status || 'active',
+      sort: sort || 0
+    });
+
+    await product.save();
+
+    success(res, {
+      id: product._id,
+      name: product.name,
+      desc: product.desc,
+      image: product.image,
+      points: product.points,
+      stock: product.stock,
+      usedCount: product.usedCount,
+      status: product.status,
+      sort: product.sort
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 更新积分商品
+router.put('/points-products/:id', merchantAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, desc, image, points, stock, maxExchangePerUser, status, sort } = req.body;
+
+    const product = await PointsProduct.findById(id);
+
+    if (!product) {
+      return error(res, '商品不存在', 404);
+    }
+
+    if (name) product.name = name;
+    if (desc !== undefined) product.desc = desc;
+    if (image !== undefined) product.image = image;
+    if (points !== undefined) {
+      if (points < 0) {
+        return error(res, '积分值必须大于等于0', 400);
+      }
+      product.points = points;
+    }
+    if (stock !== undefined) {
+      // 如果设置库存，不能小于已使用数量
+      if (stock !== -1 && stock < product.usedCount) {
+        return error(res, `库存不能小于已兑换数量(${product.usedCount})`, 400);
+      }
+      product.stock = stock;
+    }
+    if (maxExchangePerUser !== undefined) {
+      product.maxExchangePerUser = maxExchangePerUser;
+    }
+    // 更新优惠券相关字段
+    if (req.body.couponType !== undefined) {
+      product.couponType = req.body.couponType;
+    }
+    if (req.body.couponValue !== undefined) {
+      product.couponValue = req.body.couponValue;
+    } else if (req.body.couponType === 'freeProduct') {
+      // 如果是特定商品免单券，默认值为0
+      product.couponValue = 0;
+    }
+    if (req.body.couponMinAmount !== undefined) {
+      product.couponMinAmount = req.body.couponMinAmount;
+    }
+    if (req.body.productId !== undefined) {
+      // 如果productId为null，设置为null；如果为undefined，不更新
+      product.productId = req.body.productId;
+    }
+    if (status) product.status = status;
+    if (sort !== undefined) product.sort = sort;
+
+    await product.save();
+
+    success(res, {
+      id: product._id,
+      name: product.name,
+      desc: product.desc,
+      image: product.image,
+      points: product.points,
+      stock: product.stock,
+      usedCount: product.usedCount,
+      status: product.status,
+      sort: product.sort
+    });
+  } catch (err) {
+    error(res, err.message, 500);
+  }
+});
+
+// 删除积分商品
+router.delete('/points-products/:id', merchantAuth, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const product = await PointsProduct.findById(id);
+
+    if (!product) {
+      return error(res, '商品不存在', 404);
+    }
+
+    // 检查是否有用户已兑换此商品
+    const UserPointsRecord = require('../models/UserPointsRecord');
+    const recordCount = await UserPointsRecord.countDocuments({ pointsProductId: id });
+
+    if (recordCount > 0) {
+      return error(res, `该商品已被${recordCount}位用户兑换，无法删除`, 400);
+    }
+
+    await PointsProduct.findByIdAndDelete(id);
 
     success(res);
   } catch (err) {

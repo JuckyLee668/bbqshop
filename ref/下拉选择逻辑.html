@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>下拉菜单示例</title>
+  <style>
+    body {
+      font-family: 'Microsoft YaHei', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f5f5f5;
+    }
+
+    .sidebar {
+      width: 200px;
+      height: 100vh;
+      background-color: #2c3e50;
+      color: white;
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .menu-item {
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      border-bottom: 1px solid #34495e;
+      transition: background-color 0.3s;
+      position: relative;
+    }
+
+    .menu-item:hover {
+      background-color: #34495e;
+    }
+
+    .menu-item.active {
+      background-color: #34495e;
+    }
+
+    .menu-item i {
+      margin-right: 10px;
+      font-size: 18px;
+    }
+
+    .dropdown-arrow {
+      margin-left: auto;
+      font-size: 14px;
+      transition: transform 0.3s;
+    }
+
+    .submenu {
+      display: none;
+      background-color: #2c3e50;
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      border-top: 1px solid #34495e;
+    }
+
+    .submenu li {
+      padding: 10px 20px;
+      border-bottom: 1px solid #34495e;
+      transition: background-color 0.3s;
+    }
+
+    .submenu li:hover {
+      background-color: #34495e;
+    }
+
+    .submenu.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+
+<div class="sidebar">
+  <!-- 主菜单项 -->
+  <div class="menu-item" onclick="toggleMenu()">
+    <i>🏪</i>
+    门店管理
+    <span class="dropdown-arrow">▼</span>
+  </div>
+
+  <!-- 子菜单 -->
+  <ul class="submenu" id="submenu">
+    <li><i>📁</i> 分类管理</li>
+    <li><i>📄</i> 订单管理</li>
+    <li><i>🏪</i> 门店管理</li>
+  </ul>
+</div>
+
+<script>
+  function toggleMenu() {
+    const submenu = document.getElementById('submenu');
+    submenu.classList.toggle('show');
+  }
+</script>
+
+</body>
+</html>

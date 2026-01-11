@@ -1,7 +1,0 @@
-{
-  "navigationBarTitleText": "确认支付",
-  "usingComponents": {
-    "t-button": "tdesign-miniprogram/button/button"
-  }
-}
-

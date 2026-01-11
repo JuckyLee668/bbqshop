@@ -8,11 +8,16 @@
  * 3. 商品数据
  * 4. 特价套餐
  * 5. 优惠券
- * 6. 测试用户
- * 7. 用户地址
- * 8. 购物车数据
- * 9. 订单数据
- * 10. 评价数据
+ * 6. 积分商品（积分商城）
+ * 7. 商品券
+ * 8. 测试用户
+ * 9. 用户地址
+ * 10. 购物车数据
+ * 11. 订单数据
+ * 12. 评价数据
+ * 13. 用户优惠券
+ * 14. 用户商品券
+ * 15. 用户积分记录
  */
 
 require('dotenv').config();
@@ -23,12 +28,17 @@ const Category = require('../models/Category');
 const Product = require('../models/Product');
 const SpecialPackage = require('../models/SpecialPackage');
 const Coupon = require('../models/Coupon');
+const PointsProduct = require('../models/PointsProduct');
+const ProductVoucher = require('../models/ProductVoucher');
 const User = require('../models/User');
 const Address = require('../models/Address');
 const Cart = require('../models/Cart');
 const Order = require('../models/Order');
 const OrderItem = require('../models/OrderItem');
 const Review = require('../models/Review');
+const UserCoupon = require('../models/UserCoupon');
+const UserProductVoucher = require('../models/UserProductVoucher');
+const UserPointsRecord = require('../models/UserPointsRecord');
 
 // 连接MongoDB
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noodles_db', {
@@ -38,6 +48,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noodles_d
 .then(async () => {
   console.log('MongoDB连接成功');
   console.log('开始初始化完整数据...\n');
+  
+  // 确保在退出前关闭数据库连接
+  process.on('SIGINT', async () => {
+    console.log('\n收到退出信号，正在关闭数据库连接...');
+    await mongoose.connection.close();
+    process.exit(0);
+  });
 
   try {
     // 1. 创建商户
@@ -65,30 +82,55 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noodles_d
     const coupons = await createCoupons();
     console.log(`✅ 已创建 ${coupons.length} 张优惠券\n`);
 
-    // 6. 创建测试用户
+    // 6. 创建积分商品
+    console.log('🎁 创建积分商品...');
+    const pointsProducts = await createPointsProducts(products);
+    console.log(`✅ 已创建 ${pointsProducts.length} 个积分商品\n`);
+
+    // 7. 创建商品券
+    console.log('🎟️  创建商品券...');
+    const productVouchers = await createProductVouchers(products);
+    console.log(`✅ 已创建 ${productVouchers.length} 个商品券\n`);
+
+    // 8. 创建测试用户
     console.log('👤 创建测试用户...');
     const users = await createUsers();
     console.log(`✅ 已创建 ${users.length} 个用户\n`);
 
-    // 7. 创建用户地址
+    // 9. 创建用户地址
     console.log('📍 创建用户地址...');
     const addresses = await createAddresses(users);
     console.log(`✅ 已创建 ${addresses.length} 个地址\n`);
 
-    // 8. 创建购物车数据
+    // 10. 创建购物车数据
     console.log('🛒 创建购物车数据...');
     const cartItems = await createCartItems(users, products);
     console.log(`✅ 已创建 ${cartItems.length} 个购物车项\n`);
 
-    // 9. 创建订单数据
+    // 11. 创建订单数据
     console.log('📦 创建订单数据...');
     const orders = await createOrders(users, products, addresses);
     console.log(`✅ 已创建 ${orders.length} 个订单\n`);
 
-    // 10. 创建评价数据
+    // 12. 创建评价数据
     console.log('⭐ 创建评价数据...');
     const reviews = await createReviews(users, orders);
     console.log(`✅ 已创建 ${reviews.length} 条评价\n`);
+
+    // 13. 创建用户优惠券
+    console.log('🎫 创建用户优惠券...');
+    const userCoupons = await createUserCoupons(users, coupons);
+    console.log(`✅ 已创建 ${userCoupons.length} 张用户优惠券\n`);
+
+    // 14. 创建用户商品券
+    console.log('🎟️  创建用户商品券...');
+    const userProductVouchers = await createUserProductVouchers(users, productVouchers);
+    console.log(`✅ 已创建 ${userProductVouchers.length} 张用户商品券\n`);
+
+    // 15. 创建用户积分记录
+    console.log('💎 创建用户积分记录...');
+    const pointsRecords = await createPointsRecords(users, pointsProducts, productVouchers);
+    console.log(`✅ 已创建 ${pointsRecords.length} 条积分记录\n`);
 
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ 完整数据初始化完成！');
@@ -99,16 +141,23 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noodles_d
     console.log(`  商品: ${products.length}`);
     console.log(`  特价套餐: ${specialPackages.length}`);
     console.log(`  优惠券: ${coupons.length}`);
+    console.log(`  积分商品: ${pointsProducts.length}`);
+    console.log(`  商品券: ${productVouchers.length}`);
     console.log(`  用户: ${users.length}`);
     console.log(`  地址: ${addresses.length}`);
     console.log(`  购物车项: ${cartItems.length}`);
     console.log(`  订单: ${orders.length}`);
     console.log(`  评价: ${reviews.length}`);
+    console.log(`  用户优惠券: ${userCoupons.length}`);
+    console.log(`  用户商品券: ${userProductVouchers.length}`);
+    console.log(`  积分记录: ${pointsRecords.length}`);
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     
+    await mongoose.connection.close();
     process.exit(0);
   } catch (err) {
     console.error('❌ 初始化失败:', err);
+    await mongoose.connection.close();
     process.exit(1);
   }
 })
@@ -696,4 +745,296 @@ async function createReviews(users, orders) {
     }
   }
   return reviews;
+}
+
+// 创建积分商品
+async function createPointsProducts(products) {
+  const pointsProductData = [
+    {
+      name: '满30减10优惠券',
+      desc: '满30元立减10元优惠券',
+      image: '/uploads/coupon-1.jpg',
+      points: 50,
+      stock: 100,
+      usedCount: 0,
+      maxExchangePerUser: 3, // 每人限兑3次
+      status: 'active',
+      sort: 1,
+      couponType: 'reduce',
+      couponValue: 10,
+      couponMinAmount: 30
+    },
+    {
+      name: '5折优惠券',
+      desc: '全场5折优惠券',
+      image: '/uploads/coupon-2.jpg',
+      points: 100,
+      stock: 50,
+      usedCount: 0,
+      maxExchangePerUser: 2, // 每人限兑2次
+      status: 'active',
+      sort: 2,
+      couponType: 'discount',
+      couponValue: 50,
+      couponMinAmount: 0
+    },
+    {
+      name: '孜然烤面筋免单券',
+      desc: '兑换后可免费获得一份孜然烤面筋',
+      image: '/uploads/coupon-3.jpg',
+      points: 30,
+      stock: 200,
+      usedCount: 0,
+      maxExchangePerUser: 5, // 每人限兑5次
+      status: 'active',
+      sort: 3,
+      couponType: 'freeProduct',
+      couponValue: 0,
+      couponMinAmount: 0,
+      productId: products.find(p => p.name === '孜然烤面筋')?._id
+    },
+    {
+      name: '可乐免单券',
+      desc: '兑换后可免费获得一瓶可乐',
+      image: '/uploads/coupon-4.jpg',
+      points: 20,
+      stock: 300,
+      usedCount: 0,
+      maxExchangePerUser: -1, // 无限制
+      status: 'active',
+      sort: 4,
+      couponType: 'freeProduct',
+      couponValue: 0,
+      couponMinAmount: 0,
+      productId: products.find(p => p.name === '可乐')?._id
+    }
+  ];
+
+  const pointsProducts = [];
+  for (const data of pointsProductData) {
+    // 如果是特定商品免单券，检查关联商品是否存在
+    if (data.couponType === 'freeProduct' && data.productId) {
+      const product = products.find(p => p._id.toString() === data.productId.toString());
+      if (!product) {
+        console.log(`  - ${data.name} (关联商品不存在，跳过)`);
+        continue;
+      }
+    }
+
+    let pointsProduct = await PointsProduct.findOne({ name: data.name });
+    if (!pointsProduct) {
+      pointsProduct = new PointsProduct(data);
+      await pointsProduct.save();
+      pointsProducts.push(pointsProduct);
+      console.log(`  ✓ ${data.name} - ${data.points}积分`);
+    } else {
+      console.log(`  - ${data.name} (已存在)`);
+      pointsProducts.push(pointsProduct);
+    }
+  }
+  return pointsProducts;
+}
+
+// 创建商品券
+async function createProductVouchers(products) {
+  const productVoucherData = [
+    {
+      name: '10串面筋券',
+      desc: '兑换后可获得10串原味烤面筋',
+      image: '/uploads/voucher-1.jpg',
+      productId: products.find(p => p.name === '原味烤面筋')?._id,
+      quantity: 10,
+      points: 40,
+      stock: 100,
+      usedCount: 0,
+      maxExchangePerUser: 3,
+      status: 'active',
+      expireTime: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) // 90天后过期
+    },
+    {
+      name: '5串面筋券',
+      desc: '兑换后可获得5串香辣烤面筋',
+      image: '/uploads/voucher-2.jpg',
+      productId: products.find(p => p.name === '香辣烤面筋')?._id,
+      quantity: 5,
+      points: 25,
+      stock: 200,
+      usedCount: 0,
+      maxExchangePerUser: 5,
+      status: 'active',
+      expireTime: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000) // 60天后过期
+    },
+    {
+      name: '3瓶可乐券',
+      desc: '兑换后可获得3瓶可乐',
+      image: '/uploads/voucher-3.jpg',
+      productId: products.find(p => p.name === '可乐')?._id,
+      quantity: 3,
+      points: 8,
+      stock: 500,
+      usedCount: 0,
+      maxExchangePerUser: -1, // 无限制
+      status: 'active',
+      expireTime: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30天后过期
+    }
+  ];
+
+  const productVouchers = [];
+  for (const data of productVoucherData) {
+    // 如果 productId 不存在，跳过该商品券
+    if (!data.productId) {
+      console.log(`  - ${data.name} (关联商品不存在，跳过)`);
+      continue;
+    }
+
+    let productVoucher = await ProductVoucher.findOne({ name: data.name });
+    if (!productVoucher) {
+      productVoucher = new ProductVoucher(data);
+      await productVoucher.save();
+      productVouchers.push(productVoucher);
+      console.log(`  ✓ ${data.name} - ${data.points}积分`);
+    } else {
+      console.log(`  - ${data.name} (已存在)`);
+      productVouchers.push(productVoucher);
+    }
+  }
+  return productVouchers;
+}
+
+// 创建用户优惠券
+async function createUserCoupons(users, coupons) {
+  const userCoupons = [];
+  
+  // 为每个用户分配一些优惠券
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    // 每个用户分配2-3张优惠券
+    const userCouponCount = 2 + (i % 2);
+    const selectedCoupons = coupons.slice(0, userCouponCount);
+    
+    for (const coupon of selectedCoupons) {
+      // 检查是否已存在
+      let userCoupon = await UserCoupon.findOne({
+        userId: user._id,
+        couponId: coupon._id
+      });
+      
+      if (!userCoupon) {
+        userCoupon = new UserCoupon({
+          userId: user._id,
+          couponId: coupon._id,
+          status: 'available'
+        });
+        await userCoupon.save();
+        userCoupons.push(userCoupon);
+      } else {
+        userCoupons.push(userCoupon);
+      }
+    }
+  }
+  
+  if (userCoupons.length > 0) {
+    console.log(`  ✓ 已为用户分配 ${userCoupons.length} 张优惠券`);
+  }
+  
+  return userCoupons;
+}
+
+// 创建用户商品券
+async function createUserProductVouchers(users, productVouchers) {
+  const userProductVouchers = [];
+  
+  // 为部分用户分配商品券
+  for (let i = 0; i < Math.min(users.length, 2); i++) {
+    const user = users[i];
+    const productVoucher = productVouchers[i % productVouchers.length];
+    
+    if (!productVoucher) continue;
+    
+    // 每个用户分配1-2张商品券
+    const voucherCount = 1 + (i % 2);
+    
+    for (let j = 0; j < voucherCount; j++) {
+      let userProductVoucher = await UserProductVoucher.findOne({
+        userId: user._id,
+        productVoucherId: productVoucher._id,
+        status: 'available'
+      });
+      
+      if (!userProductVoucher) {
+        userProductVoucher = new UserProductVoucher({
+          userId: user._id,
+          productVoucherId: productVoucher._id,
+          status: 'available'
+        });
+        await userProductVoucher.save();
+        userProductVouchers.push(userProductVoucher);
+      } else {
+        userProductVouchers.push(userProductVoucher);
+      }
+    }
+  }
+  
+  if (userProductVouchers.length > 0) {
+    console.log(`  ✓ 已为用户分配 ${userProductVouchers.length} 张商品券`);
+  }
+  
+  return userProductVouchers;
+}
+
+// 创建用户积分记录
+async function createPointsRecords(users, pointsProducts, productVouchers) {
+  const pointsRecords = [];
+  
+  // 为每个用户创建一些积分记录
+  for (let i = 0; i < users.length; i++) {
+    const user = users[i];
+    
+    // 创建积分获得记录（消费获得积分）
+    const earnRecord = new UserPointsRecord({
+      userId: user._id,
+      points: 10 + (i * 5), // 不同用户获得不同积分
+      type: 'earn',
+      description: '消费获得积分',
+      status: 'completed'
+    });
+    await earnRecord.save();
+    pointsRecords.push(earnRecord);
+    
+    // 为部分用户创建兑换记录
+    if (i < 2 && pointsProducts.length > 0) {
+      const pointsProduct = pointsProducts[i % pointsProducts.length];
+      const exchangeRecord = new UserPointsRecord({
+        userId: user._id,
+        pointsProductId: pointsProduct._id,
+        points: -pointsProduct.points, // 负数表示扣除积分
+        type: 'exchange',
+        description: `兑换${pointsProduct.name}`,
+        status: 'completed'
+      });
+      await exchangeRecord.save();
+      pointsRecords.push(exchangeRecord);
+    }
+    
+    // 为部分用户创建商品券兑换记录
+    if (i < 2 && productVouchers.length > 0) {
+      const productVoucher = productVouchers[i % productVouchers.length];
+      const voucherExchangeRecord = new UserPointsRecord({
+        userId: user._id,
+        productVoucherId: productVoucher._id,
+        points: -productVoucher.points,
+        type: 'exchange',
+        description: `兑换${productVoucher.name}`,
+        status: 'completed'
+      });
+      await voucherExchangeRecord.save();
+      pointsRecords.push(voucherExchangeRecord);
+    }
+  }
+  
+  if (pointsRecords.length > 0) {
+    console.log(`  ✓ 已创建 ${pointsRecords.length} 条积分记录`);
+  }
+  
+  return pointsRecords;
 }

@@ -21,12 +21,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // 连接MongoDB
+const logger = require('./utils/logger');
 mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/noodles_db', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 })
-.then(() => console.log('MongoDB连接成功'))
-.catch(err => console.error('MongoDB连接失败:', err));
+.then(() => logger.info('MongoDB连接成功'))
+.catch(err => logger.error('MongoDB连接失败:', err));
 
 // 路由
 app.use('/v1/auth', require('./routes/auth'));
@@ -46,6 +47,8 @@ app.use('/v1/special-packages', require('./routes/special-packages-public'));
 app.use('/v1/upload', require('./routes/upload'));
 app.use('/v1/feedback', require('./routes/feedback'));
 app.use('/v1/coupons', require('./routes/coupons'));
+app.use('/v1/payment', require('./routes/payment'));
+app.use('/v1/points', require('./routes/points'));
 
 // 健康检查
 app.get('/health', (req, res) => {
@@ -54,10 +57,23 @@ app.get('/health', (req, res) => {
 
 // 错误处理中间件
 app.use((err, req, res, next) => {
-  console.error(err.stack);
+  // 记录错误堆栈（生产环境应该写入日志文件）
+  logger.error('请求错误:', {
+    method: req.method,
+    url: req.url,
+    error: err.message,
+    stack: err.stack
+  });
+  
+  // 生产环境不返回详细错误信息
+  const isDevelopment = process.env.NODE_ENV !== 'production';
+  const errorMessage = isDevelopment 
+    ? err.message || '服务器错误'
+    : '服务器内部错误';
+  
   res.status(err.status || 500).json({
     code: err.status || 500,
-    message: err.message || '服务器错误',
+    message: errorMessage,
     data: null
   });
 });
@@ -73,7 +89,10 @@ app.use((req, res) => {
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-  console.log(`服务器运行在端口 ${PORT}`);
+  logger.info(`服务器运行在端口 ${PORT}`, {
+    env: process.env.NODE_ENV || 'development',
+    port: PORT
+  });
 });
 
 module.exports = app;

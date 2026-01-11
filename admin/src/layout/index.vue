@@ -15,26 +15,40 @@
           <el-icon><DataAnalysis /></el-icon>
           <span>数据统计</span>
         </el-menu-item>
-        <el-menu-item index="/products">
-          <el-icon><Goods /></el-icon>
-          <span>商品管理</span>
-        </el-menu-item>
-        <el-menu-item index="/categories">
-          <el-icon><Menu /></el-icon>
-          <span>分类管理</span>
-        </el-menu-item>
+        <el-sub-menu index="product-management">
+          <template #title>
+            <el-icon><Goods /></el-icon>
+            <span>商品管理</span>
+          </template>
+          <el-menu-item index="/products">
+            <span>商品列表</span>
+          </el-menu-item>
+          <el-menu-item index="/categories">
+            <span>分类管理</span>
+          </el-menu-item>
+          <el-menu-item index="/store">
+            <span>门店管理</span>
+          </el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/orders">
           <el-icon><Document /></el-icon>
           <span>订单管理</span>
         </el-menu-item>
-        <el-menu-item index="/store">
-          <el-icon><Shop /></el-icon>
-          <span>门店管理</span>
-        </el-menu-item>
-        <el-menu-item index="/activities">
-          <el-icon><Promotion /></el-icon>
-          <span>活动管理</span>
-        </el-menu-item>
+        <el-sub-menu index="activity-management">
+          <template #title>
+            <el-icon><Promotion /></el-icon>
+            <span>活动管理</span>
+          </template>
+          <el-menu-item index="/special-packages">
+            <span>特价套餐</span>
+          </el-menu-item>
+          <el-menu-item index="/coupons">
+            <span>优惠券管理</span>
+          </el-menu-item>
+          <el-menu-item index="/points-mall">
+            <span>积分商城</span>
+          </el-menu-item>
+        </el-sub-menu>
         <el-menu-item index="/users">
           <el-icon><User /></el-icon>
           <span>用户管理</span>

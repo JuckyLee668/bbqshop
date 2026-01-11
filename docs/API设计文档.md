@@ -400,14 +400,11 @@
   "message": "success",
   "data": {
     "orderId": "20240101123456",
+    "orderNo": "20240101123456",
     "totalPrice": 15,
-    "payParams": {
-      "timeStamp": "1609459200",
-      "nonceStr": "随机字符串",
-      "package": "prepay_id=xxx",
-      "signType": "RSA",
-      "paySign": "签名"
-    }
+    "productTotal": 15,
+    "deliveryFee": 0,
+    "deliveryType": "pickup"
   }
 }
 ```
@@ -525,13 +522,20 @@
 }
 ```
 
-### 6.6 订单支付
-**接口地址**：`POST /orders/:id/pay`
+### 6.6 创建支付订单（统一下单）
+**接口地址**：`POST /payment/create`
+
+**说明**：创建微信支付订单，获取支付参数。订单创建后，需要调用此接口获取支付参数。
+
+**请求头**：
+```
+Authorization: Bearer {token}
+```
 
 **请求参数**：
 ```json
 {
-  "paymentType": "wechat"
+  "orderId": "订单ID"
 }
 ```
 
@@ -541,6 +545,8 @@
   "code": 200,
   "message": "success",
   "data": {
+    "orderId": "订单ID",
+    "orderNo": "订单号",
     "payParams": {
       "timeStamp": "1609459200",
       "nonceStr": "随机字符串",
@@ -552,19 +558,53 @@
 }
 ```
 
-### 6.7 支付回调
-**接口地址**：`POST /orders/pay-callback`
+### 6.7 查询支付状态
+**接口地址**：`GET /payment/query/:orderId`
 
-**请求参数**：微信支付回调数据
+**说明**：查询订单的支付状态。
+
+**请求头**：
+```
+Authorization: Bearer {token}
+```
 
 **响应数据**：
 ```json
 {
   "code": 200,
   "message": "success",
-  "data": null
+  "data": {
+    "orderId": "订单ID",
+    "orderNo": "订单号",
+    "status": "paid",
+    "payTime": "2024-01-01T12:00:00.000Z",
+    "paymentInfo": {
+      "tradeState": "SUCCESS",
+      "tradeStateDesc": "支付成功"
+    }
+  }
 }
 ```
+
+### 6.8 支付回调
+**接口地址**：`POST /payment/notify`
+
+**说明**：微信支付回调接口，由微信服务器调用，无需认证。
+
+**请求参数**：微信支付回调数据（由微信服务器发送）
+
+**响应数据**：
+```json
+{
+  "code": "SUCCESS",
+  "message": "成功"
+}
+```
+
+**注意**：
+- 此接口会自动更新订单状态为"已支付"
+- 会自动更新用户消费统计和积分
+- 订单支付接口 `/orders/:id/pay` 已废弃，请使用 `/payment/create`
 
 ---
 
@@ -1064,11 +1104,236 @@
       "id": 1,
       "name": "新用户专享",
       "desc": "首单立减5元",
-      "type": "discount",
+      "type": "reduce",
       "value": 5,
       "minAmount": 0,
+      "productId": null,
       "status": "available",
       "expireTime": "2024-12-31 23:59:59"
+    }
+  ]
+}
+```
+
+**优惠券类型说明**：
+- `reduce`：满减券（满指定金额减指定金额）
+- `discount`：折扣券（按百分比折扣）
+- `freeProduct`：特定商品免单券（需关联 productId）
+
+### 10.4 获取可用优惠券（用于订单）
+**接口地址**：`GET /coupons/usable`
+
+**请求参数**：
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| amount | number | 是 | 订单金额 |
+| cartItems | string | 否 | 购物车商品列表（JSON字符串，用于计算特定商品免单券） |
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "满30减10",
+      "type": "reduce",
+      "value": 10,
+      "minAmount": 30,
+      "productId": null,
+      "discountAmount": 10
+    },
+    {
+      "id": 2,
+      "name": "孜然烤面筋免单券",
+      "type": "freeProduct",
+      "value": 0,
+      "minAmount": 0,
+      "productId": "商品ID",
+      "discountAmount": 6
+    }
+  ]
+}
+```
+
+### 10.5 领取优惠券
+**接口地址**：`POST /coupons/receive/:couponId`
+
+**请求参数**：无（couponId 在 URL 中）
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "id": 1,
+    "couponId": "优惠券ID",
+    "name": "优惠券名称",
+    "status": "available"
+  }
+}
+```
+
+### 10.6 获取已发放的优惠券（通知中心）
+**接口地址**：`GET /coupons/distributed`
+
+**请求参数**：无
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "name": "新用户专享",
+      "desc": "首单立减5元",
+      "isReceived": false
+    }
+  ]
+}
+```
+
+### 10.7 积分商城相关
+
+#### 10.7.1 获取积分商城商品列表
+**接口地址**：`GET /points/shop`
+
+**请求参数**：无
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "userPoints": 100,
+    "productsList": [
+      {
+        "id": 1,
+        "name": "满30减10优惠券",
+        "desc": "满30元立减10元优惠券",
+        "image": "/uploads/coupon-1.jpg",
+        "points": 50,
+        "stock": 100,
+        "usedCount": 10,
+        "maxExchangePerUser": 3,
+        "canExchange": true,
+        "isReachedLimit": false,
+        "userExchangeCount": 1,
+        "couponType": "reduce",
+        "couponValue": 10,
+        "couponMinAmount": 30
+      }
+    ]
+  }
+}
+```
+
+#### 10.7.2 兑换优惠券（积分商品）
+**接口地址**：`POST /points/exchange/coupon`
+
+**请求参数**：
+```json
+{
+  "pointsProductId": "积分商品ID"
+}
+```
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "userCouponId": "用户优惠券ID",
+    "remainingPoints": 50
+  }
+}
+```
+
+#### 10.7.3 兑换商品券
+**接口地址**：`POST /points/exchange/product-voucher`
+
+**请求参数**：
+```json
+{
+  "productVoucherId": "商品券ID"
+}
+```
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "userProductVoucherId": "用户商品券ID",
+    "remainingPoints": 60
+  }
+}
+```
+
+#### 10.7.4 获取用户商品券列表
+**接口地址**：`GET /points/product-vouchers`
+
+**请求参数**：
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| status | string | 否 | 状态：available/used/expired |
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "productVoucherId": "商品券ID",
+      "name": "10串面筋券",
+      "desc": "兑换后可获得10串原味烤面筋",
+      "productId": "商品ID",
+      "quantity": 10,
+      "status": "available",
+      "expireTime": "2024-12-31 23:59:59"
+    }
+  ]
+}
+```
+
+#### 10.7.5 获取用户积分记录
+**接口地址**：`GET /points/records`
+
+**请求参数**：
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| type | string | 否 | 类型：exchange/earn/deduct |
+
+**响应数据**：
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "points": 10,
+      "type": "earn",
+      "description": "消费获得积分",
+      "status": "completed",
+      "createdAt": "2024-01-01 10:00:00"
+    },
+    {
+      "id": 2,
+      "points": -50,
+      "type": "exchange",
+      "description": "兑换满30减10优惠券",
+      "status": "completed",
+      "createdAt": "2024-01-02 10:00:00"
     }
   ]
 }

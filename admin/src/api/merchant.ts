@@ -233,3 +233,48 @@ export const deleteReview = (id: string) => {
     method: 'delete'
   })
 }
+
+// ========== 优惠券管理 ==========
+
+// 获取优惠券列表
+export const getCoupons = (params?: any) => {
+  return request({
+    url: '/merchant/coupons',
+    method: 'get',
+    params
+  })
+}
+
+// 获取优惠券详情
+export const getCoupon = (id: string) => {
+  return request({
+    url: `/merchant/coupons/${id}`,
+    method: 'get'
+  })
+}
+
+// 创建优惠券
+export const createCoupon = (data: any) => {
+  return request({
+    url: '/merchant/coupons',
+    method: 'post',
+    data
+  })
+}
+
+// 更新优惠券
+export const updateCoupon = (id: string, data: any) => {
+  return request({
+    url: `/merchant/coupons/${id}`,
+    method: 'put',
+    data
+  })
+}
+
+// 删除优惠券
+export const deleteCoupon = (id: string) => {
+  return request({
+    url: `/merchant/coupons/${id}`,
+    method: 'delete'
+  })
+}

@@ -33,6 +33,32 @@ WX_APPID=wx你的appid
 WX_SECRET=你的secret
 
 
+# ==================== 微信支付配置 ====================
+# 微信支付商户号（在微信支付商户平台获取）
+WX_MCHID=你的商户号
+
+# 微信支付 API v3 密钥（32位字符串，在商户平台设置）
+WX_API_KEY=你的API密钥
+
+# 商户私钥（用于签名，PEM格式）
+# 方式1：直接填写私钥内容（推荐用于开发环境）
+# WX_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n你的私钥内容\n-----END PRIVATE KEY-----
+# 方式2：填写私钥文件路径（推荐用于生产环境）
+# WX_PRIVATE_KEY=file:///path/to/apiclient_key.pem
+
+# 证书序列号（在商户平台获取）
+WX_CERT_SERIAL_NO=你的证书序列号
+
+# 微信支付平台证书公钥（可选，用于验证回调，PEM格式）
+# WX_PUBLIC_KEY=-----BEGIN CERTIFICATE-----\n公钥内容\n-----END CERTIFICATE-----
+
+# 支付回调地址（可选，默认使用 API_BASE_URL + /v1/payment/notify）
+# WX_NOTIFY_URL=https://yourdomain.com/v1/payment/notify
+
+# API 基础地址（用于生成回调地址）
+# API_BASE_URL=https://yourdomain.com
+
+
 # ==================== CORS 配置 ====================
 # 允许跨域的域名（多个用逗号分隔）
 # 开发环境: *

@@ -10,7 +10,7 @@ const couponSchema = new mongoose.Schema({
   },
   type: {
     type: String,
-    enum: ['discount', 'reduce'],
+    enum: ['discount', 'reduce', 'freeProduct'],
     required: true
   },
   value: {
@@ -20,6 +20,10 @@ const couponSchema = new mongoose.Schema({
   minAmount: {
     type: Number,
     default: 0
+  },
+  productId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Product' // 特定商品免单券关联的商品ID
   },
   expireTime: {
     type: Date
@@ -31,6 +35,10 @@ const couponSchema = new mongoose.Schema({
   usedCount: {
     type: Number,
     default: 0
+  },
+  isDistributed: {
+    type: Boolean,
+    default: false // 是否发放（true表示可以在通知中心领取）
   }
 }, {
   timestamps: true

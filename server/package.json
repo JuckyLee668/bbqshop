@@ -15,7 +15,8 @@
     "init:data": "node scripts/init-data.js",
     "init:full": "node scripts/init-full-data.js",
     "fix:user-index": "node scripts/fix-user-index.js",
-    "fix:cart-index": "node scripts/fix-cart-index.js"
+    "fix:cart-index": "node scripts/fix-cart-index.js",
+    "test:db": "node test-db-connection.js"
   },
   "keywords": ["miniprogram", "api", "express", "mongodb"],
   "author": "",

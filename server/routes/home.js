@@ -4,6 +4,7 @@ const Product = require('../models/Product');
 const Merchant = require('../models/Merchant');
 const SpecialPackage = require('../models/SpecialPackage');
 const { success, error } = require('../utils/response');
+const { auth } = require('../middleware/auth');
 
 // 获取首页数据
 router.get('/index', async (req, res) => {
@@ -74,13 +75,63 @@ router.get('/index', async (req, res) => {
       .limit(4)
       .select('name desc price images tag');
 
-    // 优惠活动（可以从优惠券表获取）
-    const promotions = [{
-      id: 1,
-      title: '新用户专享',
-      desc: '首单立减5元，满30减10',
-      type: 'new_user'
-    }];
+    // 获取新用户专享优惠券配置
+    let newUserCoupon = null;
+    if (merchant && merchant.storeInfo && merchant.storeInfo.newUserCoupon && merchant.storeInfo.newUserCoupon.enabled) {
+      const Coupon = require('../models/Coupon');
+      const UserCoupon = require('../models/UserCoupon');
+      const coupon = await Coupon.findById(merchant.storeInfo.newUserCoupon.couponId);
+      
+      if (coupon) {
+        // 检查用户是否已领取（可选认证，如果用户已登录则检查）
+        let isAvailable = true;
+        let isReceived = false;
+        
+        // 尝试获取userId（如果用户已登录）
+        const token = req.headers.authorization?.replace('Bearer ', '');
+        if (token) {
+          try {
+            const jwt = require('jsonwebtoken');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET || 'your-secret-key');
+            const userId = decoded.userId;
+            
+            if (userId) {
+              const existingUserCoupon = await UserCoupon.findOne({
+                userId: userId,
+                couponId: coupon._id,
+                status: { $in: ['available', 'used'] }
+              });
+              
+              if (existingUserCoupon) {
+                isReceived = true;
+                isAvailable = false;
+              }
+            }
+          } catch (err) {
+            // token无效或解析失败，忽略（允许未登录用户查看）
+          }
+        }
+        
+        // 检查库存
+        if (coupon.totalCount !== -1 && coupon.usedCount >= coupon.totalCount) {
+          isAvailable = false;
+        }
+        
+        // 检查是否过期
+        if (coupon.expireTime && new Date(coupon.expireTime) < new Date()) {
+          isAvailable = false;
+        }
+        
+        newUserCoupon = {
+          enabled: true,
+          couponId: coupon._id,
+          title: merchant.storeInfo.newUserCoupon.title || '新用户专享',
+          desc: merchant.storeInfo.newUserCoupon.desc || coupon.desc || '',
+          isAvailable,
+          isReceived
+        };
+      }
+    }
 
     success(res, {
       storeInfo,
@@ -93,7 +144,7 @@ router.get('/index', async (req, res) => {
         image: p.images?.[0],
         isFavorite: false
       })),
-      promotions
+      newUserCoupon
     });
   } catch (err) {
     error(res, err.message, 500);

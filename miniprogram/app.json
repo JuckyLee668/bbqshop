@@ -5,12 +5,13 @@
     "pages/product-detail/product-detail",
     "pages/special-package-detail/special-package-detail",
     "pages/address/address",
-    "pages/pay/pay",
     "pages/cart/cart",
     "pages/order/order",
     "pages/profile/profile",
     "pages/merchant/merchant",
-    "pages/review/review"
+    "pages/review/review",
+    "pages/coupon/coupon",
+    "pages/points/points"
   ],
   "window": {
     "navigationBarTextStyle": "black",

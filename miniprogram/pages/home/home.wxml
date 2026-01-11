@@ -7,10 +7,9 @@
         <text class="navbar-title">手工烤面筋</text>
       </view>
       <view class="navbar-right">
-        <t-icon name="notification" size="20px" color="#666" />
-        <view class="cart-icon-wrapper" bindtap="goToCart">
-          <t-icon name="shopping-cart" size="20px" color="#666" />
-          <t-badge count="{{cartCount}}" offset="[-5, 5]" />
+        <view class="notification-icon-wrapper" bindtap="showNotificationCenter">
+          <t-icon name="notification" size="20px" color="#666" />
+          <view wx:if="{{notificationCount > 0}}" class="notification-badge">{{notificationCount}}</view>
         </view>
       </view>
     </view>
@@ -101,14 +100,66 @@
     </t-grid>
   </view>
 
-  <!-- 优惠活动入口 -->
-  <view class="section" wx:if="{{promotions.length > 0}}">
-    <view class="promotion-card" wx:for="{{promotions}}" wx:key="id">
-      <view class="promotion-content">
-        <text class="promotion-title">{{item.title}}</text>
-        <text class="promotion-desc">{{item.desc}}</text>
+  <!-- 新用户专享 -->
+  <view class="section" wx:if="{{newUserCoupon && newUserCoupon.enabled}}">
+    <view class="new-user-banner">
+      <view class="new-user-content">
+        <text class="new-user-title">{{newUserCoupon.title || '新用户专享'}}</text>
+        <text class="new-user-desc">{{newUserCoupon.desc || ''}}</text>
       </view>
-      <t-button theme="primary" variant="outline" size="small" bindtap="getPromotion">立即领取</t-button>
+      <t-button 
+        theme="primary" 
+        variant="outline" 
+        size="small"
+        bindtap="getNewUserCoupon"
+        data-coupon-id="{{newUserCoupon.couponId}}"
+        disabled="{{!newUserCoupon.isAvailable}}"
+      >
+        {{newUserCoupon.isAvailable ? '立即领取' : '已领取'}}
+      </t-button>
+    </view>
+  </view>
+
+  <!-- 通知中心弹窗 -->
+  <view class="notification-popup" wx:if="{{showNotification}}" bindtap="hideNotificationCenter">
+    <view class="notification-content" catchtap="stopPropagation">
+      <view class="notification-header">
+        <text class="notification-title">优惠券领取</text>
+        <t-icon name="close" size="20px" color="#666" bindtap="hideNotificationCenter" />
+      </view>
+      <scroll-view class="notification-list" scroll-y>
+        <view wx:if="{{distributedCoupons.length > 0}}">
+          <view 
+            class="notification-item"
+            wx:for="{{distributedCoupons}}"
+            wx:key="id"
+          >
+            <view class="coupon-card">
+              <view class="coupon-info">
+                <text class="coupon-name">{{item.name}}</text>
+                <text class="coupon-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+              </view>
+              <view class="coupon-right">
+                <view 
+                  wx:if="{{!item.isReceived}}"
+                  class="receive-btn"
+                  bindtap="receiveCoupon"
+                  data-coupon-id="{{item.id}}"
+                >
+                  <text class="receive-text">领取</text>
+                </view>
+                <view 
+                  wx:else
+                  class="receive-btn received"
+                >
+                  <text class="receive-text">已领取</text>
+                </view>
+              </view>
+            </view>
+          </view>
+        </view>
+        <t-empty wx:else description="暂无可领取的优惠券" />
+      </scroll-view>
     </view>
   </view>
 </view>

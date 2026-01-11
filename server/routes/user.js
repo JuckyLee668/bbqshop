@@ -91,12 +91,21 @@ router.put('/info', async (req, res) => {
       return error(res, '用户不存在', 404);
     }
 
-    // 更新昵称（如果提供且不为空）
-    if (nickName && nickName.trim() && nickName.trim() !== '微信用户') {
-      user.nickName = nickName.trim();
-    } else if (nickName && nickName.trim() === '') {
-      // 如果传入空字符串，保持原值
-      // 不更新
+    // 更新昵称（如果提供且不为空且不是默认值）
+    if (nickName !== undefined && nickName !== null) {
+      const trimmedNickName = nickName.trim();
+      // 如果昵称不为空且不是默认值，则更新
+      if (trimmedNickName && trimmedNickName !== '微信用户') {
+        user.nickName = trimmedNickName;
+      } else if (trimmedNickName === '') {
+        // 如果传入空字符串，保持原值，不更新
+        // 但可以设置为默认值
+        if (!user.nickName || user.nickName === '微信用户') {
+          user.nickName = '微信用户';
+        }
+      }
+      // 如果传入的是 '微信用户'，也允许更新（用户可能想改回默认值）
+      // 但通常这种情况应该提示用户输入其他昵称
     }
     
     // 更新头像（如果提供）

@@ -29,23 +29,21 @@ async function ensureLogin() {
       cancelText: '取消',
       success: async (res) => {
         if (res.confirm) {
-          try {
-            // 调用微信一键登录
-            const app = getApp();
-            await app.wxLogin();
-            
-            // 登录成功，检查是否获取到token
-            const token = wx.getStorageSync('token');
-            if (token) {
-              resolve(true);
-            } else {
-              // 登录失败，但没有抛出错误（可能已经提示了）
-              resolve(false);
+          // 跳转到个人中心页面进行登录
+          wx.switchTab({
+            url: '/pages/profile/profile',
+            success: () => {
+              // 跳转成功后，提示用户点击登录按钮
+              setTimeout(() => {
+                wx.showToast({
+                  title: '请在个人中心点击登录',
+                  icon: 'none',
+                  duration: 2000
+                })
+              }, 500)
             }
-          } catch (err) {
-            // 登录失败，错误已在 app.wxLogin 中处理
-            resolve(false);
-          }
+          })
+          resolve(false) // 跳转后返回 false，等待用户登录
         } else {
           resolve(false);
         }

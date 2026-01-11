@@ -45,8 +45,16 @@ const orderSchema = new mongoose.Schema({
   },
   couponId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Coupon'
+    ref: 'UserCoupon' // 引用用户优惠券，不是优惠券模板
   },
+  productVoucherIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'UserProductVoucher' // 保存商品券ID，用于支付成功后标记为已使用
+  }],
+  cartItemIds: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Cart' // 保存购物车商品ID，用于支付成功后删除购物车
+  }],
   payTime: {
     type: Date
   },

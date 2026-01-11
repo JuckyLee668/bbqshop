@@ -55,10 +55,12 @@ async function fixUserIndex() {
     const finalIndexes = await User.collection.getIndexes();
     console.log('最终索引:', finalIndexes);
 
-    console.log('索引修复完成！');
+    console.log('✅ 索引修复完成！');
+    await mongoose.connection.close();
     process.exit(0);
   } catch (error) {
-    console.error('修复失败:', error);
+    console.error('❌ 修复失败:', error);
+    await mongoose.connection.close();
     process.exit(1);
   }
 }

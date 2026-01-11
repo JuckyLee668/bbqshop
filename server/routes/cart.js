@@ -4,6 +4,7 @@ const Cart = require('../models/Cart');
 const Product = require('../models/Product');
 const { auth } = require('../middleware/auth');
 const { success, error } = require('../utils/response');
+const logger = require('../utils/logger');
 
 // 所有路由需要认证
 router.use(auth);
@@ -49,7 +50,7 @@ router.post('/add', async (req, res) => {
   try {
     const { productId, quantity, flavor, spicy, addons, spec } = req.body;
     
-    console.log('收到添加购物车请求:', {
+    logger.debug('收到添加购物车请求:', {
       productId,
       quantity,
       flavor,
@@ -98,7 +99,7 @@ router.post('/add', async (req, res) => {
           }
           
           if (!addonId) {
-            console.warn('addon 缺少标识:', addon);
+            logger.warn('addon 缺少标识:', addon);
             return null;
           }
           
@@ -108,7 +109,7 @@ router.post('/add', async (req, res) => {
             price: addon.price || 0
           };
         } catch (e) {
-          console.error('处理 addon 失败:', e, addon);
+          logger.error('处理 addon 失败:', e, addon);
           return null;
         }
       }).filter(addon => addon && (addon.id !== null && addon.id !== undefined));
@@ -193,16 +194,16 @@ router.post('/add', async (req, res) => {
     if (spec) cartData.spec = spec;
 
     const cart = new Cart(cartData);
-    console.log('准备保存购物车项:', cartData);
+    logger.debug('准备保存购物车项:', cartData);
 
     try {
       await cart.save();
-      console.log('购物车项保存成功:', cart._id);
+      logger.debug('购物车项保存成功:', cart._id);
       success(res, { cartItemId: cart._id });
     } catch (saveErr) {
-      // 如果是唯一索引冲突，可能是数据库中有旧索引
-      if (saveErr.code === 11000) {
-        console.error('唯一索引冲突，可能是数据库索引问题:', saveErr);
+        // 如果是唯一索引冲突，可能是数据库中有旧索引
+        if (saveErr.code === 11000) {
+          logger.error('唯一索引冲突，可能是数据库索引问题:', saveErr);
         // 尝试删除旧索引并重试
         try {
           await Cart.collection.dropIndex('user_1').catch(() => {});
@@ -210,7 +211,7 @@ router.post('/add', async (req, res) => {
           // 重新创建用户
           const retryCart = new Cart(cartData);
           await retryCart.save();
-          console.log('清理索引后，购物车项保存成功，ID:', retryCart._id);
+          logger.info('清理索引后，购物车项保存成功，ID:', retryCart._id);
           return success(res, { cartItemId: retryCart._id });
         } catch (retryErr) {
           throw new Error('创建购物车项失败，请检查数据库索引配置。错误：' + retryErr.message);
@@ -220,7 +221,7 @@ router.post('/add', async (req, res) => {
       }
     }
   } catch (err) {
-    console.error('添加购物车失败 - 详细错误:', {
+    logger.error('添加购物车失败 - 详细错误:', {
       message: err.message,
       stack: err.stack,
       name: err.name,

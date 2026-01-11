@@ -115,7 +115,12 @@ const order = {
     return api.put(`/orders/${id}/address`, { deliveryAddressId });
   },
   
-  // 支付订单
+  // 更新订单优惠券
+  updateCoupon(id, couponId) {
+    return api.put(`/orders/${id}/coupon`, { couponId });
+  },
+  
+  // 支付订单（已废弃：请使用 payment.createPayment 创建支付订单）
   pay(id) {
     return api.put(`/orders/${id}/pay`);
   },
@@ -123,6 +128,19 @@ const order = {
   // 完成订单
   complete(id) {
     return api.put(`/orders/${id}/complete`);
+  }
+};
+
+// 支付相关
+const payment = {
+  // 创建支付订单（统一下单）
+  createPayment(orderId) {
+    return api.post('/payment/create', { orderId });
+  },
+  
+  // 查询支付状态
+  queryStatus(orderId) {
+    return api.get(`/payment/query/${orderId}`);
   }
 };
 
@@ -198,9 +216,77 @@ const feedback = {
 
 // 优惠券相关
 const coupon = {
-  // 获取优惠券列表
+  // 获取用户优惠券列表
   getList(status) {
     return api.get('/coupons', { status });
+  },
+  
+  // 获取可领取的优惠券列表
+  getAvailable() {
+    return api.get('/coupons/available');
+  },
+  
+  // 领取优惠券
+  receive(couponId) {
+    return api.post(`/coupons/receive/${couponId}`);
+  },
+  
+  // 获取可用优惠券（用于订单选择）
+  getUsable(amount, cartItems) {
+    const params = { amount };
+    if (cartItems && cartItems.length > 0) {
+      // 只传递选中的商品，并且只传递必要字段
+      const selectedItems = cartItems
+        .filter(item => item.checked)
+        .map(item => ({
+          productId: typeof item.productId === 'object' 
+            ? item.productId.toString() 
+            : String(item.productId || ''),
+          price: parseFloat(item.price) || 0,
+          quantity: parseInt(item.quantity) || 1,
+          checked: item.checked === true
+        }));
+      params.cartItems = JSON.stringify(selectedItems);
+    }
+    return api.get('/coupons/usable', params);
+  },
+
+  // 获取通知中心可领取的优惠券（已发放的）
+  getDistributed() {
+    return api.get('/coupons/distributed');
+  },
+
+  // 使用优惠券
+  use(userCouponId) {
+    return api.post(`/coupons/use/${userCouponId}`);
+  }
+};
+
+// 积分商城相关
+const points = {
+  // 获取积分商城商品列表
+  getList() {
+    return api.get('/points');
+  },
+  
+  // 获取积分商城（包含用户积分信息）
+  getShop() {
+    return api.get('/points/shop');
+  },
+  
+  // 兑换优惠券
+  exchangeCoupon(couponId) {
+    return api.post(`/points/exchange/coupon/${couponId}`);
+  },
+  
+  // 兑换商品券
+  exchangeProductVoucher(voucherId) {
+    return api.post(`/points/exchange/product-voucher/${voucherId}`);
+  },
+  
+  // 获取用户商品券列表
+  getProductVouchers(status) {
+    return api.get('/points/product-vouchers', { status });
   }
 };
 
@@ -217,5 +303,7 @@ module.exports = {
   upload,
   feedback,
   coupon,
-  review
+  review,
+  payment,
+  points
 };

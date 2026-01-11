@@ -100,10 +100,12 @@
     <t-cell 
       title="优惠券" 
       left-icon="check-circle"
-      note="3张可用"
+      note="{{availableCouponCount > 0 ? availableCouponCount + '张可用' : '暂无可用'}}"
       arrow
       bind:click="goToCoupons"
-    />
+    >
+      <t-badge wx:if="{{availableCouponCount > 0}}" count="{{availableCouponCount}}" />
+    </t-cell>
     <t-cell 
       title="积分商城" 
       left-icon="wallet"
@@ -153,6 +155,7 @@
             type="nickname" 
             placeholder="请输入昵称"
             value="{{editForm.nickName}}"
+            bindinput="onNicknameInput"
             bindblur="onNicknameBlur"
           />
         </view>

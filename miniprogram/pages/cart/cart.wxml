@@ -72,6 +72,138 @@
         </view>
       </view>
     </view>
+
+    <!-- 优惠券选择 -->
+    <view class="coupon-section" wx:if="{{cartList.length > 0 && selectedCount > 0}}">
+      <view class="coupon-header" bindtap="toggleCouponPicker">
+        <view class="coupon-header-left">
+          <t-icon name="discount" size="20px" color="#FF6B35" />
+          <text class="coupon-title">优惠券</text>
+          <text wx:if="{{selectedCoupon}}" class="coupon-selected-text">
+            已选择：{{selectedCoupon.name}}
+          </text>
+          <text wx:else class="coupon-placeholder">
+            {{usableCoupons.length > 0 ? '选择优惠券' : '暂无可用优惠券'}}
+          </text>
+        </view>
+        <view class="coupon-header-right">
+          <text wx:if="{{couponDiscount > 0}}" class="coupon-discount-text">
+            已优惠¥{{couponDiscountText}}
+          </text>
+          <t-icon name="chevron-right" size="20px" color="#999" />
+        </view>
+      </view>
+      
+      <!-- 优惠券选择器 -->
+      <view class="coupon-picker" wx:if="{{showCouponPicker && usableCoupons.length > 0}}">
+        <view class="coupon-picker-header">
+          <text class="coupon-picker-title">选择优惠券</text>
+          <text class="coupon-picker-close" bindtap="toggleCouponPicker">完成</text>
+        </view>
+        <scroll-view class="coupon-picker-list" scroll-y>
+          <view 
+            class="coupon-picker-item {{selectedCoupon && selectedCoupon.id === item.id ? 'selected' : ''}}"
+            wx:for="{{usableCoupons}}"
+            wx:key="id"
+            bindtap="selectCoupon"
+            data-coupon="{{item}}"
+          >
+            <view class="coupon-picker-content">
+              <view class="coupon-picker-left">
+                <view class="coupon-picker-value">
+                  <text class="coupon-value-text">
+                    {{item.type === 'discount' ? item.value + '折' : (item.type === 'freeProduct' ? '¥' + (item.discountAmountText || item.discountAmount || '0.00') : '¥' + item.value)}}
+                  </text>
+                </view>
+                <view class="coupon-picker-info">
+                  <text class="coupon-picker-name">{{item.name}}</text>
+                  <text class="coupon-picker-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+                  <text class="coupon-picker-condition" wx:if="{{item.minAmount > 0}}">
+                    满¥{{item.minAmount}}可用
+                  </text>
+                </view>
+              </view>
+              <view class="coupon-picker-right">
+                <text class="coupon-picker-discount">
+                  可优惠¥{{item.discountAmountText || '0.00'}}
+                </text>
+                <t-icon 
+                  wx:if="{{selectedCoupon && selectedCoupon.id === item.id}}"
+                  name="check-circle-filled" 
+                  size="24px" 
+                  color="#FF6B35" 
+                />
+              </view>
+            </view>
+          </view>
+          <view 
+            class="coupon-picker-item no-coupon"
+            wx:if="{{selectedCoupon}}"
+            bindtap="removeCoupon"
+          >
+            <text class="no-coupon-text">不使用优惠券</text>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
+
+    <!-- 商品券选择 -->
+    <view class="product-voucher-section" wx:if="{{cartList.length > 0 && selectedCount > 0 && availableProductVouchers.length > 0}}">
+      <view class="product-voucher-header" bindtap="toggleProductVoucherPicker">
+        <view class="product-voucher-header-left">
+          <t-icon name="gift" size="20px" color="#FF6B35" />
+          <text class="product-voucher-title">商品券</text>
+          <text wx:if="{{selectedProductVouchers.length > 0}}" class="product-voucher-selected-text">
+            已选择{{selectedProductVouchers.length}}张
+          </text>
+          <text wx:else class="product-voucher-placeholder">
+            选择商品券
+          </text>
+        </view>
+        <view class="product-voucher-header-right">
+          <t-icon name="chevron-right" size="20px" color="#999" />
+        </view>
+      </view>
+      
+      <!-- 商品券选择器 -->
+      <view class="product-voucher-picker" wx:if="{{showProductVoucherPicker && availableProductVouchers.length > 0}}">
+        <view class="product-voucher-picker-header">
+          <text class="product-voucher-picker-title">选择商品券</text>
+          <text class="product-voucher-picker-close" bindtap="toggleProductVoucherPicker">完成</text>
+        </view>
+        <scroll-view class="product-voucher-picker-list" scroll-y>
+          <view 
+            class="product-voucher-picker-item {{item.isSelected ? 'selected' : ''}}"
+            wx:for="{{availableProductVouchers}}"
+            wx:key="id"
+            bindtap="selectProductVoucher"
+            data-voucher="{{item}}"
+          >
+            <view class="product-voucher-picker-content">
+              <view class="product-voucher-picker-left">
+                <image wx:if="{{item.image}}" src="{{item.image}}" class="product-voucher-image" mode="aspectFill" />
+                <view wx:else class="product-voucher-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+                <view class="product-voucher-picker-info">
+                  <text class="product-voucher-picker-name">{{item.name}}</text>
+                  <text class="product-voucher-picker-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+                  <text class="product-voucher-picker-product">
+                    {{item.quantity}}{{item.productName}}
+                  </text>
+                </view>
+              </view>
+              <view class="product-voucher-picker-right">
+                <t-icon 
+                  wx:if="{{item.isSelected}}"
+                  name="check-circle-filled" 
+                  size="24px" 
+                  color="#FF6B35" 
+                />
+              </view>
+            </view>
+          </view>
+        </scroll-view>
+      </view>
+    </view>
     
     <view class="footer-content">
       <view class="footer-left">
@@ -87,7 +219,10 @@
           <text class="total-label">合计</text>
           <view class="total-price-wrapper">
             <text class="total-price">¥{{finalTotalPrice}}</text>
-            <text wx:if="{{deliveryFee > 0}}" class="delivery-fee-text">(含配送费¥{{deliveryFeeText}})</text>
+            <view class="price-details">
+              <text wx:if="{{couponDiscount > 0}}" class="discount-text">已优惠¥{{couponDiscountText}}</text>
+              <text wx:if="{{deliveryFee > 0}}" class="delivery-fee-text">(含配送费¥{{deliveryFeeText}})</text>
+            </view>
           </view>
         </view>
         <t-button 
@@ -96,7 +231,7 @@
           bindtap="checkout"
           disabled="{{selectedCount === 0}}"
         >
-          去结算
+          立即支付
         </t-button>
       </view>
     </view>

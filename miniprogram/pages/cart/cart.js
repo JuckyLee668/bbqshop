@@ -18,7 +18,13 @@ Page({
     deliveryFeeText: '0.00', // 配送费文本
     isFreeDelivery: false, // 是否免配送费
     freeDeliveryText: '', // 免配送费提示文本
-    deliveryFeeDisplayText: '' // 配送费显示文本
+    deliveryFeeDisplayText: '', // 配送费显示文本
+    // 优惠券相关
+    selectedCoupon: null, // 选中的优惠券
+    usableCoupons: [], // 可用优惠券列表
+    couponDiscount: 0, // 优惠券折扣金额
+    couponDiscountText: '0.00', // 优惠券折扣金额文本
+    showCouponPicker: false // 是否显示优惠券选择器
   },
 
   async onLoad() {
@@ -205,6 +211,70 @@ Page({
   
     // 再触发配送费计算（它会 setData 最终价格）
     this.calculateDeliveryFee();
+    
+    // 加载可用优惠券
+    this.loadUsableCoupons();
+    
+    // 加载可用商品券
+    this.loadAvailableProductVouchers();
+  },
+
+  // 加载可用商品券
+  async loadAvailableProductVouchers() {
+    try {
+      const vouchers = await apiService.points.getProductVouchers('available');
+      const selectedIds = (this.data.selectedProductVouchers || []).map(v => v.id);
+      // 为每个商品券添加 isSelected 属性
+      const vouchersWithSelected = (vouchers || []).map(voucher => ({
+        ...voucher,
+        isSelected: selectedIds.includes(voucher.id)
+      }));
+      this.setData({ availableProductVouchers: vouchersWithSelected });
+    } catch (err) {
+      console.error('加载商品券失败:', err);
+      this.setData({ availableProductVouchers: [] });
+    }
+  },
+
+  // 选择商品券
+  selectProductVoucher(e) {
+    const voucher = e.currentTarget.dataset.voucher;
+    if (voucher) {
+      const selected = this.data.selectedProductVouchers || [];
+      const index = selected.findIndex(v => v.id === voucher.id);
+      
+      if (index >= 0) {
+        // 取消选择
+        selected.splice(index, 1);
+      } else {
+        // 选择
+        selected.push(voucher);
+      }
+      
+      // 更新商品券列表的 isSelected 状态
+      const availableVouchers = this.data.availableProductVouchers.map(v => ({
+        ...v,
+        isSelected: selected.some(s => s.id === v.id)
+      }));
+      
+      this.setData({ 
+        selectedProductVouchers: selected,
+        availableProductVouchers: availableVouchers,
+        showProductVoucherPicker: false
+      });
+    }
+  },
+
+  // 移除商品券
+  removeProductVoucher(e) {
+    const voucherId = e.currentTarget.dataset.voucherId;
+    const selected = this.data.selectedProductVouchers.filter(v => v.id !== voucherId);
+    this.setData({ selectedProductVouchers: selected });
+  },
+
+  // 切换商品券选择器
+  toggleProductVoucherPicker() {
+    this.setData({ showProductVoucherPicker: !this.data.showProductVoucherPicker });
   },
 
   async changeQuantity(e) {
@@ -295,15 +365,19 @@ Page({
     this.updateFooter()
   },
 
-  // 更新最终总价（商品总价 + 配送费）
+  // 更新最终总价（商品总价 - 优惠券折扣 + 配送费）
   updateFinalPrice() {
     const productTotal = parseFloat(this.data.totalPrice) || 0;
-    const deliveryFee = this.data.deliveryFee || 0;
-    const finalTotal = productTotal + deliveryFee;
+    const deliveryFee = parseFloat(this.data.deliveryFee) || 0;
+    const couponDiscount = parseFloat(this.data.couponDiscount) || 0;
+    const finalProductTotal = Math.max(0, productTotal - couponDiscount);
+    const finalTotal = finalProductTotal + deliveryFee;
     
     this.setData({
       finalTotalPrice: finalTotal.toFixed(2),
-      deliveryFeeText: deliveryFee.toFixed(2)
+      deliveryFeeText: deliveryFee.toFixed(2),
+      couponDiscount: couponDiscount, // 确保是数字类型
+      couponDiscountText: couponDiscount.toFixed(2) // 格式化文本
     });
   },
 
@@ -367,6 +441,137 @@ Page({
     this.calculateDeliveryFee();
   },
 
+  // 加载可用优惠券
+  async loadUsableCoupons() {
+    try {
+      const productTotal = parseFloat(this.data.totalPrice) || 0;
+      if (productTotal <= 0) {
+        this.setData({ 
+          usableCoupons: [], 
+          selectedCoupon: null, 
+          couponDiscount: 0,
+          couponDiscountText: '0.00'
+        });
+        this.updateFinalPrice();
+        return;
+      }
+      
+      // 传递购物车商品列表，用于计算特定商品免单券的优惠金额
+      const cartItems = this.data.cartList || [];
+      const coupons = await apiService.coupon.getUsable(productTotal, cartItems);
+      
+      // 为每个优惠券添加格式化后的折扣金额文本
+      const formattedCoupons = (coupons || []).map(coupon => ({
+        ...coupon,
+        discountAmountText: (parseFloat(coupon.discountAmount) || 0).toFixed(2)
+      }));
+      
+      // 如果之前选中的优惠券不在可用列表中，清除选择
+      if (this.data.selectedCoupon) {
+        const updatedSelectedCoupon = formattedCoupons.find(c => c.id === this.data.selectedCoupon.id);
+        if (!updatedSelectedCoupon) {
+          // 之前选中的优惠券不可用了，清除选择
+          this.setData({ 
+            usableCoupons: formattedCoupons,
+            selectedCoupon: null, 
+            couponDiscount: 0,
+            couponDiscountText: '0.00'
+          });
+          this.updateFinalPrice();
+        } else {
+          // 更新优惠券列表和选中的优惠券（使用最新的 discountAmount）
+          this.setData({ 
+            usableCoupons: formattedCoupons,
+            selectedCoupon: updatedSelectedCoupon
+          });
+          this.calculateCouponDiscount();
+        }
+      } else {
+        this.setData({ usableCoupons: formattedCoupons });
+      }
+    } catch (err) {
+      console.error('加载优惠券失败:', err);
+      this.setData({ usableCoupons: [] });
+    }
+  },
+
+  // 计算优惠券折扣
+  calculateCouponDiscount() {
+    const { selectedCoupon, totalPrice } = this.data;
+    if (!selectedCoupon) {
+      this.setData({ 
+        couponDiscount: 0,
+        couponDiscountText: '0.00'
+      });
+      this.updateFinalPrice();
+      return;
+    }
+
+    const productTotal = parseFloat(totalPrice) || 0;
+    let discount = 0;
+
+    if (selectedCoupon.type === 'discount') {
+      // 折扣券：计算折扣金额
+      discount = Math.round(productTotal * (selectedCoupon.value / 100) * 100) / 100;
+    } else if (selectedCoupon.type === 'reduce') {
+      // 满减券：直接减金额
+      discount = parseFloat(selectedCoupon.value) || 0;
+    } else if (selectedCoupon.type === 'freeProduct' && selectedCoupon.productId) {
+      // 特定商品免单券：只减免一个商品的价格（一张券只能免一次）
+      const { cartList } = this.data;
+      for (const item of cartList) {
+        if (item.checked && item.productId) {
+          // 比较商品ID（可能是字符串或对象）
+          const itemProductId = typeof item.productId === 'object' ? item.productId.toString() : String(item.productId);
+          const couponProductId = String(selectedCoupon.productId);
+          
+          if (itemProductId === couponProductId) {
+            // 只减免一个商品的价格，不是所有数量
+            const itemPrice = parseFloat(item.price) || 0;
+            discount = itemPrice; // 只减免一个商品的价格
+            break; // 找到第一个匹配的商品后立即退出
+          }
+        }
+      }
+    }
+
+    // 确保折扣不超过商品总价
+    discount = Math.min(discount, productTotal);
+    // 确保是数字类型
+    discount = parseFloat(discount) || 0;
+    
+    this.setData({ couponDiscount: discount });
+    this.updateFinalPrice();
+  },
+
+  // 选择优惠券
+  selectCoupon(e) {
+    const coupon = e.currentTarget.dataset.coupon;
+    if (coupon) {
+      this.setData({ 
+        selectedCoupon: coupon,
+        showCouponPicker: false
+      });
+      this.calculateCouponDiscount();
+    }
+  },
+
+  // 取消选择优惠券
+  removeCoupon() {
+    this.setData({ 
+      selectedCoupon: null, 
+      couponDiscount: 0,
+      couponDiscountText: '0.00',
+      showCouponPicker: false
+    });
+    this.updateFinalPrice();
+  },
+
+  // 显示/隐藏优惠券选择器
+  toggleCouponPicker() {
+    this.setData({ showCouponPicker: !this.data.showCouponPicker });
+  },
+
   async checkout() {
     try {
       const selectedItems = this.data.cartList.filter((item) => item.checked)
@@ -383,34 +588,107 @@ Page({
         // 这里可以添加地址选择逻辑，暂时先允许创建订单
         // 后续可以在订单创建时验证地址
       }
+
+      wx.showLoading({
+        title: '创建订单中...',
+        mask: true
+      })
       
       const cartItemIds = selectedItems.map(item => item.id)
+      const productVoucherIds = this.data.selectedProductVouchers.map(v => v.id)
+      
       const orderData = await apiService.order.create({
         cartItemIds,
         deliveryType: this.data.deliveryType,
-        deliveryFee: this.data.deliveryFee
+        deliveryFee: this.data.deliveryFee,
+        couponId: this.data.selectedCoupon ? this.data.selectedCoupon.id : null,
+        productVoucherIds: productVoucherIds.length > 0 ? productVoucherIds : null
       })
 
-      // 跳转到模拟支付页面，并通过事件通道传递支付参数
-      wx.navigateTo({
-        url: `/pages/pay/pay?orderId=${orderData.orderId}&orderNo=${orderData.orderNo || orderData.orderId}&totalPrice=${orderData.totalPrice}`,
-        success: (res) => {
-          if (res.eventChannel) {
-            res.eventChannel.emit('payData', {
-              orderId: orderData.orderId,
-              orderNo: orderData.orderNo || orderData.orderId,
-              totalPrice: orderData.totalPrice,
-              productTotal: orderData.productTotal || orderData.totalPrice,
-              deliveryFee: orderData.deliveryFee || 0,
-              deliveryType: this.data.deliveryType,
-              payParams: orderData.payParams
+      wx.hideLoading()
+
+      // 如果使用了优惠券但订单中没有应用，尝试更新订单优惠券
+      if (this.data.selectedCoupon && !orderData.couponId) {
+        try {
+          await apiService.order.updateCoupon(orderData.orderId, this.data.selectedCoupon.id)
+          // 重新获取订单信息
+          const updatedOrder = await apiService.order.getDetail(orderData.orderId)
+          orderData.totalPrice = updatedOrder.totalPrice
+        } catch (err) {
+          console.error('更新订单优惠券失败:', err)
+        }
+      }
+
+      // 直接调用支付接口
+      await this.createPayment(orderData.orderId)
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({
+        title: err.message || '结算失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 创建支付订单并调用微信支付
+  async createPayment(orderId) {
+    try {
+      wx.showLoading({
+        title: '调起支付...',
+        mask: true
+      })
+
+      // 调用支付接口获取支付参数
+      const paymentData = await apiService.payment.createPayment(orderId)
+      
+      wx.hideLoading()
+
+      // 调用微信支付
+      wx.requestPayment({
+        timeStamp: paymentData.timeStamp,
+        nonceStr: paymentData.nonceStr,
+        package: paymentData.package,
+        signType: paymentData.signType,
+        paySign: paymentData.paySign,
+        success: async (res) => {
+          console.log('支付成功:', res)
+          
+          // 支付成功，查询订单状态确认
+          setTimeout(async () => {
+            try {
+              const orderStatus = await apiService.payment.queryStatus(orderId)
+              if (orderStatus.status === 'paid') {
+                wx.showToast({
+                  title: '支付成功',
+                  icon: 'success'
+                })
+                
+                // 跳转到订单详情或订单列表
+                setTimeout(() => {
+                  wx.redirectTo({
+                    url: `/pages/order/order?status=all`
+                  })
+                }, 1500)
+              }
+            } catch (err) {
+              console.error('查询订单状态失败:', err)
+            }
+          }, 1000)
+        },
+        fail: (err) => {
+          console.error('支付失败:', err)
+          if (err.errMsg !== 'requestPayment:fail cancel') {
+            wx.showToast({
+              title: err.errMsg || '支付失败',
+              icon: 'none'
             })
           }
         }
       })
     } catch (err) {
+      wx.hideLoading()
       wx.showToast({
-        title: err.message || '结算失败',
+        title: err.message || '支付失败',
         icon: 'none'
       })
     }

@@ -1,0 +1,86 @@
+<view class="points-container">
+  <!-- 用户积分信息 -->
+  <view class="points-header">
+    <view class="points-info">
+      <text class="points-label">我的积分</text>
+      <text class="points-value">{{userPoints}}</text>
+    </view>
+  </view>
+
+  <!-- 积分商品列表 -->
+  <view class="products-section">
+    <view class="section-title">积分兑换</view>
+    <view wx:if="{{productsList.length > 0}}" class="products-list">
+      <view 
+        class="product-item"
+        wx:for="{{productsList}}"
+        wx:key="id"
+      >
+        <view class="product-image-wrapper">
+          <image wx:if="{{item.image}}" src="{{item.image}}" class="product-image" mode="aspectFill" />
+          <view wx:else class="product-image" style="background: linear-gradient(135deg, #FED7AA 0%, #FB923C 100%)"></view>
+        </view>
+        <view class="product-info">
+          <text class="product-name">{{item.name}}</text>
+          <text class="product-desc" wx:if="{{item.desc}}">{{item.desc}}</text>
+          <view class="product-meta">
+            <view class="product-points">
+              <text class="points-text">{{item.points}}</text>
+              <text class="points-unit">积分</text>
+            </view>
+            <view class="exchange-count">
+              <text class="count-text" wx:if="{{item.remainingCount !== -1}}">总兑换{{item.usedCount}}/{{item.stock}}</text>
+              <text class="count-text" wx:if="{{item.maxExchangePerUser !== -1 && item.remainingCount !== -1}}" style="margin-left: 8rpx;">每人限{{item.maxExchangePerUser}}次</text>
+              <text class="count-text" wx:if="{{item.maxExchangePerUser === -1 && item.remainingCount === -1}}">无限制</text>
+              <text class="count-text" wx:if="{{item.userExchangeCount !== undefined && item.maxExchangePerUser !== -1}}" style="margin-left: 8rpx;">（已兑{{item.userExchangeCount}}次）</text>
+            </view>
+          </view>
+          <view class="product-footer">
+            <t-button 
+              wx:if="{{item.canExchange}}"
+              theme="primary" 
+              size="small"
+              bindtap="goToExchange"
+              data-item="{{item}}"
+            >
+              兑换
+            </t-button>
+            <t-button 
+              wx:elif="{{item.isReachedLimit}}"
+              theme="default" 
+              size="small"
+              disabled
+            >
+              已达上限
+            </t-button>
+            <t-button 
+              wx:elif="{{item.remainingCount !== -1 && item.remainingCount <= 0}}"
+              theme="default" 
+              size="small"
+              disabled
+            >
+              已兑完
+            </t-button>
+            <t-button 
+              wx:elif="{{userPoints < item.points}}"
+              theme="default" 
+              size="small"
+              disabled
+            >
+              积分不足
+            </t-button>
+            <t-button 
+              wx:else
+              theme="default" 
+              size="small"
+              disabled
+            >
+              不可兑换
+            </t-button>
+          </view>
+        </view>
+      </view>
+    </view>
+    <t-empty wx:else description="暂无积分商品" />
+  </view>
+</view>

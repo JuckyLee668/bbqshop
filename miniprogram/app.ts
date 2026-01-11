@@ -8,7 +8,7 @@ interface GlobalData {
 
 interface AppOption extends IAppOption {
   globalData: GlobalData;
-  wxLogin: () => Promise<any>;
+  wxLogin: (code: string, userInfo?: { nickName?: string; avatarUrl?: string }) => Promise<any>;
   getUserInfo: () => Promise<void>;
 }
 
@@ -31,29 +31,10 @@ App<AppOption>({
     }
   },
 
-  // 微信一键登录
-  async wxLogin(userInfo?: { nickName?: string; avatarUrl?: string }) {
+  // 微信一键登录（参照示例：接收 code 和 userInfo）
+  async wxLogin(code: string, userInfo?: { nickName?: string; avatarUrl?: string }) {
     try {
-      wx.showLoading({ title: '登录中...' })
-      
-      // 1. 获取微信登录code（微信官方推荐方式）
-      const loginRes = await new Promise<any>((resolve, reject) => {
-        wx.login({
-          success: (res) => {
-            if (res.code) {
-              resolve(res)
-            } else {
-              reject(new Error('获取登录凭证失败'))
-            }
-          },
-          fail: (err) => {
-            console.error('wx.login失败:', err)
-            reject(new Error('获取登录凭证失败，请重试'))
-          }
-        })
-      })
-
-      // 2. 使用传入的用户信息（如果已通过 getUserProfile 获取）
+      // 1. 准备用户信息（如果已通过 getUserProfile 获取）
       const wxUserInfo = userInfo || null
       if (wxUserInfo) {
         console.log('使用授权获取的用户信息 - 昵称:', wxUserInfo.nickName, '头像:', wxUserInfo.avatarUrl ? '已设置' : '未设置')
@@ -61,9 +42,9 @@ App<AppOption>({
         console.log('未传入用户信息，将使用默认值')
       }
 
-      // 3. 调用后端登录接口
+      // 2. 调用后端登录接口
       // openid 和 session_key 在后端通过 code 获取，前端不需要处理
-      const loginData = await apiService.auth.wxLogin(loginRes.code, wxUserInfo)
+      const loginData = await apiService.auth.wxLogin(code, wxUserInfo)
       
       // 3. 验证登录结果
       if (!loginData || !loginData.token) {
@@ -73,7 +54,7 @@ App<AppOption>({
       // 4. 保存登录信息
       wx.setStorageSync('token', loginData.token)
       if (loginData.userInfo) {
-        wx.setStorageSync('userInfo', loginData.userInfo)
+      wx.setStorageSync('userInfo', loginData.userInfo)
         this.globalData.userInfo = loginData.userInfo
       }
       this.globalData.token = loginData.token
@@ -122,10 +103,10 @@ App<AppOption>({
       const errorMsg = err.message || ''
       if (errorMsg.includes('401') || errorMsg.includes('请求失败: 401')) {
         console.log('Token已过期，清除登录状态')
-        wx.removeStorageSync('token')
-        wx.removeStorageSync('userInfo')
-        this.globalData.token = undefined
-        this.globalData.userInfo = undefined
+      wx.removeStorageSync('token')
+      wx.removeStorageSync('userInfo')
+      this.globalData.token = undefined
+      this.globalData.userInfo = undefined
       } else {
         console.error('获取用户信息失败:', err)
       }

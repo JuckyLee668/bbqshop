@@ -7,18 +7,23 @@ Page({
     storeInfo: null,
     special: null,
     hotProducts: [],
-    promotions: []
+    newUserCoupon: null, // 新用户专享优惠券
+    showNotification: false, // 是否显示通知中心
+    distributedCoupons: [], // 可领取的优惠券列表
+    notificationCount: 0 // 通知数量（未领取的优惠券数量）
   },
 
   onLoad() {
     this.loadHomeData()
     this.updateCartCount()
+    this.loadDistributedCoupons()
   },
 
   onShow() {
     // 每次显示页面时刷新数据
     this.loadHomeData()
     this.updateCartCount()
+    this.loadDistributedCoupons()
   },
 
   // 加载首页数据
@@ -37,7 +42,7 @@ Page({
         return baseUrl + '/' + img
       }
 
-      // 基础数据：门店、热销、促销
+      // 基础数据：门店、热销、新用户专享
       this.setData({
         storeInfo: data.storeInfo,
         hotProducts: (data.hotProducts || []).map(item => ({
@@ -45,7 +50,7 @@ Page({
           image: processImage(item.image),
           gradient: this.getGradientByIndex(item.id)
         })),
-        promotions: data.promotions || []
+        newUserCoupon: data.newUserCoupon || null
       })
 
       // 单独请求特价套餐，使用新的特价套餐 API
@@ -151,10 +156,121 @@ Page({
     }
   },
 
-  getPromotion() {
-    wx.showToast({
-      title: '优惠已领取',
-      icon: 'success'
-    })
+  // 领取新用户专享优惠券
+  async getNewUserCoupon(e) {
+    const couponId = e.currentTarget.dataset.couponId
+    if (!couponId) {
+      return
+    }
+
+    try {
+      wx.showLoading({ title: '领取中...' })
+      await apiService.coupon.receive(couponId)
+      
+      wx.hideLoading()
+      wx.showToast({
+        title: '领取成功',
+        icon: 'success'
+      })
+      
+      // 重新加载首页数据
+      this.loadHomeData()
+      
+      // 刷新优惠券页面（如果已打开）
+      const pages = getCurrentPages()
+      const couponPage = pages.find(page => page.route === 'pages/coupon/coupon')
+      if (couponPage && couponPage.loadCoupons) {
+        couponPage.loadCoupons()
+      }
+      
+      // 如果用户在个人中心，刷新优惠券数量
+      const profilePage = pages.find(page => page.route === 'pages/profile/profile')
+      if (profilePage && profilePage.loadUserInfo) {
+        profilePage.loadUserInfo()
+      }
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({
+        title: err.message || '领取失败',
+        icon: 'none'
+      })
+    }
+  },
+
+  // 显示通知中心
+  showNotificationCenter() {
+    this.setData({ showNotification: true })
+    this.loadDistributedCoupons()
+  },
+
+  // 隐藏通知中心
+  hideNotificationCenter() {
+    this.setData({ showNotification: false })
+  },
+
+  // 阻止事件冒泡
+  stopPropagation() {
+    // 空函数，用于阻止点击内容区域时关闭弹窗
+  },
+
+  // 加载可领取的优惠券
+  async loadDistributedCoupons() {
+    try {
+      const coupons = await apiService.coupon.getDistributed()
+      const unReceivedCount = coupons.filter(c => !c.isReceived).length
+      
+      this.setData({
+        distributedCoupons: coupons || [],
+        notificationCount: unReceivedCount
+      })
+    } catch (err) {
+      console.error('加载可领取优惠券失败:', err)
+      this.setData({
+        distributedCoupons: [],
+        notificationCount: 0
+      })
+    }
+  },
+
+  // 领取优惠券
+  async receiveCoupon(e) {
+    const couponId = e.currentTarget.dataset.couponId
+    if (!couponId) return
+
+    try {
+      wx.showLoading({ title: '领取中...' })
+      await apiService.coupon.receive(couponId)
+      
+      wx.hideLoading()
+      wx.showToast({
+        title: '领取成功',
+        icon: 'success'
+      })
+      
+      // 重新加载优惠券列表
+      await this.loadDistributedCoupons()
+      
+      // 检查是否还有未领取的优惠券，如果没有则关闭弹窗
+      const unReceivedCount = this.data.distributedCoupons.filter(c => !c.isReceived).length
+      if (unReceivedCount === 0) {
+        // 延迟关闭，让用户看到"领取成功"的提示
+        setTimeout(() => {
+          this.hideNotificationCenter()
+        }, 500)
+      }
+      
+      // 刷新优惠券页面（如果已打开）
+      const pages = getCurrentPages()
+      const couponPage = pages.find(page => page.route === 'pages/coupon/coupon')
+      if (couponPage && couponPage.loadCoupons) {
+        couponPage.loadCoupons()
+      }
+    } catch (err) {
+      wx.hideLoading()
+      wx.showToast({
+        title: err.message || '领取失败',
+        icon: 'none'
+      })
+    }
   }
 })

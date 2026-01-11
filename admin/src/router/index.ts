@@ -56,10 +56,22 @@ const routes: RouteRecordRaw[] = [
         meta: { title: '门店管理', icon: 'Shop' }
       },
       {
-        path: 'activities',
-        name: 'Activities',
-        component: () => import('@/views/Activities/index.vue'),
-        meta: { title: '活动管理', icon: 'Promotion' }
+        path: 'special-packages',
+        name: 'SpecialPackages',
+        component: () => import('@/views/SpecialPackages/index.vue'),
+        meta: { title: '特价套餐', icon: 'Promotion' }
+      },
+      {
+        path: 'coupons',
+        name: 'Coupons',
+        component: () => import('@/views/Coupons/index.vue'),
+        meta: { title: '优惠券管理', icon: 'Promotion' }
+      },
+      {
+        path: 'points-mall',
+        name: 'PointsMall',
+        component: () => import('@/views/PointsMall/index.vue'),
+        meta: { title: '积分商城', icon: 'Promotion' }
       },
       {
         path: 'users',
@@ -72,7 +84,7 @@ const routes: RouteRecordRaw[] = [
         name: 'Reviews',
         component: () => import('@/views/Reviews/index.vue'),
         meta: { title: '评论管理', icon: 'ChatLineRound' }
-      }
+      },
     ]
   }
 ]
